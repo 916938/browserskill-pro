@@ -41,6 +41,46 @@ BrowserSkill Pro 是一个独立的 Agent Skill，通过本机 **BrowserSkill da
 
 只要 Agent 能读取 Agent Skill 指令，并能执行本地 shell 命令，就可以使用核心工作流。本项目额外提供 OpenAI/Codex 元数据，但核心协议和操作说明不依赖某个特定 Agent 产品。
 
+### ⚠️ 项目来源与免责声明
+
+> **重要声明：** 本项目是**社区驱动的衍生作品**，并非腾讯或其关联公司的官方产品。
+
+**项目谱系：**
+
+```
+Tencent/BrowserSkill (官方版本)
+        │
+        ├──► 916938/browserskill-new (社区分支与增强版)
+        │           │
+        │           └──► 916938/browserskill-pro (本仓库 - Pro 专业版)
+        │
+        └──► 其他社区分支和衍生版本
+```
+
+**与上游项目的关系：**
+
+| 仓库 | 角色 | 维护者 | 许可证 |
+|------|------|--------|--------|
+| [Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill) | **原始/上游版本** | 腾讯（官方） | MIT |
+| [916938/browserskill-new](https://github.com/916938/browserskill-new) | **增强基础版** | 社区（916938） | MIT |
+| **916938/browserskill-pro**（本仓库） | **Pro 专业版** | 社区（916938） | MIT |
+
+**与官方版本的主要区别：**
+- 本项目是 BrowserSkill 的**非官方、社区维护的增强版本**
+- 增加了跨平台安装脚本（Windows/Linux/macOS）
+- 提供了 Docker 部署解决方案
+- 支持多种 AI Agent 环境（CodeBuddy/Claude Code/WorkBuddy/Codex）
+- 包含完整的文档体系和分层架构
+- 可能包含上游官方版本中没有的功能
+
+**合规性说明：**
+- ✅ 完全遵守 [MIT License](LICENSE) 条款
+- ✅ 保持对上游项目的适当归属标注
+- ❌ 未获得腾讯的背书、赞助或官方关联
+- ⚠️ 用户应查看上游 [Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill) 获取官方发布和安全更新
+
+如需获取包含 Windows 兼容性修复和多浏览器支持的最新稳定基础版本，请参见 [browserskill-new](https://github.com/916938/browserskill-new)。
+
 ### 适用场景
 
 - 阅读用户已经登录的网站
@@ -818,12 +858,95 @@ python3 ./skill/scripts/doctor.py --wait-connected 20
 
 本项目基于 [MIT License](LICENSE) 开源。
 
+**许可证合规性：**
+- 本项目是 [Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill) 的衍生作品（MIT 许可证）
+- 完全保留上游许可证的所有条款和归属要求
+- MIT 许可证全文包含在 [LICENSE](LICENSE) 文件中
+- 第三方依赖库保持其原始许可证
+
+## 免责声明与法律提示
+
+**非腾讯官方产品：**
+- BrowserSkill Pro **并非**由腾讯或其关联公司开发、背书或维护
+- 这是一个基于开源 BrowserSkill 框架构建的社区驱动项目
+- 使用本软件的风险由用户自行承担
+
+**商标与品牌：**
+- "BrowserSkill" 可能是腾讯的商标或注册商标
+- "BrowserSkill Pro" 及相关品牌仅用于识别目的
+- 不暗示与腾讯有任何官方关联或背书
+
+**安全性与维护：**
+- 如需**官方安全更新**和稳定版本，请参阅 [Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill)
+- 社区维护版本可能具有不同的更新周期和支持级别
+- 在生产环境中使用前请务必审查代码和安全实践
+
+## 项目谱系与归属
+
+### 上游项目（原创工作）
+
+| 项目 | 描述 | URL | 许可证 |
+|------|------|-----|--------|
+| **BrowserSkill** | 腾讯官方 daemon + 浏览器扩展 | [github.com/Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill) | MIT |
+
+### 直接依赖（基础版本）
+
+| 项目 | 描述 | URL |
+|------|------|-----|
+| **browserskill-new** | 包含 Windows 修复、多浏览器支持、CI/CD 工作流的增强基础版 | [github.com/916938/browserskill-new](https://github.com/916938/browserskill-new) |
+
+> **说明：** `browserskill-new` 是本 Pro 版的直接基础。它包括：
+> - Windows 平台兼容性改进
+> - 多浏览器实例管理
+> - 基于 PR 的 CI 工作流集成
+> - 增强的错误处理和日志记录
+
+### 本版本（Pro 功能）
+
+**BrowserSkill Pro** 在 `browserskill-new` 基础上新增：
+
+- ✅ 完整的跨平台安装系统（Windows PowerShell / Linux Bash / Docker）
+- ✅ 支持 4+ 种 AI Agent 环境（CodeBuddy/Claude Code/WorkBuddy/Codex）
+- ✅ 全面的文档体系（835 行双语 README）
+- ✅ Docker 容器化及生产环境编排
+- ✅ 分层架构设计（SKILL.md → protocol.md → operations.md → how-it-works.md）
+- ✅ 以隐私为核心的设计和明确的数据处理规则
+- ✅ 自动化测试和验证工具
+
+### 支持的平台
+
+| 平台 | Agent 环境 | 安装路径 |
+|------|-----------|---------|
+| CodeBuddy | 主要支持平台 | `~/.codebuddy/skills/browserskill-pro` |
+| Claude Code | Skills 模式 | `~/.claude/skills/browserskill-pro` |
+| Claude Code | Commands 模式 | `~/.claude/commands/browserskill-pro` |
+| WorkBuddy | 企业级 Agent | `~/.workbuddy/skills/browserskill-pro` |
+| Codex | OpenAI 助手 | `~/.codex/skills/browserskill-pro` |
+| Docker | 容器化部署 | `browserskill-pro:latest` 镜像 |
+
 ## 致谢
 
-- [BrowserSkill](https://github.com/Tencent/BrowserSkill) — 底层 daemon 和浏览器扩展
-- [CodeBuddy](https://cnb.cool/codebuddy/codebuddy-code) — 主要支持的 AI Agent 平台
-- [Claude Code](https://claude.ai/) — 多模式 Agent 平台支持
-- 所有贡献者和使用者
+我们向以下项目和社区致以诚挚的感谢：
+
+### 核心技术
+- **[Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill)** — 使这一切成为可能的原始 daemon 和浏览器扩展。感谢腾讯团队开源了这项令人难以置信的技术。
+- **[916938/browserskill-new](https://github.com/916938/browserskill-new)** — 包含关键 Windows 兼容性修复和多浏览器支持的增强基础版。本 Pro 版本构建的基础。
+
+### AI Agent 平台
+- **[CodeBuddy](https://cnb.cool/codebuddy/codebuddy-code)** — 我们主要支持的 AI Agent 平台。出色的集成体验。
+- **[Claude Code](https://claude.ai/)** — Anthropic 的 AI 编程助手，支持双模式 skill/command。
+- **WorkBuddy** — 企业级 AI agent 环境支持。
+- **Codex/OpenAI** — OpenAI 的编程助手，提供全面的元数据集成。
+
+### 社区与贡献者
+- 所有提交 issue、pull request 和反馈的**贡献者**
+- 进行测试并提供宝贵改进建议的**用户**
+- 促进创新和协作的**开源社区**
+
+### 特别感谢
+- 感谢 **Tencent BrowserSkill 团队**创建了如此有用的工具并将其开源
+- 感谢使此类集成成为可能的 **AI Agent 生态系统开发者**
+- 感谢**您**，用户，信任这个社区驱动的项目
 
 ---
 

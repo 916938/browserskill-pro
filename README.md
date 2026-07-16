@@ -41,6 +41,46 @@ BrowserSkill Pro is a standalone Agent Skill that controls users' **real, authen
 
 As long as an Agent can read Agent Skill instructions and execute local shell commands, it can use the core workflow. This repository additionally provides OpenAI/Codex metadata, but core protocol and operation instructions do not depend on any specific Agent product.
 
+### ⚠️ Project Origin & Disclaimer
+
+> **Important:** This project is a **community-driven derivative work**, not an official product of Tencent or any affiliated organization.
+
+**Project Lineage:**
+
+```
+Tencent/BrowserSkill (Official)
+        │
+        ├──► 916938/browserskill-new (Community Fork & Enhanced Version)
+        │           │
+        │           └──► 916938/browserskill-pro (This Repository - Pro Edition)
+        │
+        └──► Other community forks and derivatives
+```
+
+**Relationship to Upstream Projects:**
+
+| Repository | Role | Maintainer | License |
+|------------|------|-----------|---------|
+| [Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill) | **Original/Upstream** | Tencent (Official) | MIT |
+| [916938/browserskill-new](https://github.com/916938/browserskill-new) | **Enhanced Base** | Community (916938) | MIT |
+| **916938/browserskill-pro** (this repo) | **Pro Edition** | Community (916938) | MIT |
+
+**Key Distinctions from Official Version:**
+- This is an **unofficial, community-maintained enhancement** of the original BrowserSkill
+- Adds multi-platform installation scripts (Windows/Linux/macOS)
+- Provides Docker deployment solutions
+- Supports multiple AI Agent environments (CodeBuddy/Claude Code/WorkBuddy/Codex)
+- Includes comprehensive documentation and layered architecture
+- May include features not present in the upstream official version
+
+**Compliance Notice:**
+- ✅ Fully complies with [MIT License](LICENSE) terms
+- ✅ Proper attribution to upstream projects maintained
+- ❌ Not endorsed, sponsored, or officially associated with Tencent
+- ⚠️ Users should review upstream [Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill) for official releases and security updates
+
+For the latest stable base version with Windows compatibility fixes and multi-browser support, see [browserskill-new](https://github.com/916938/browserskill-new).
+
 ### Use Cases
 
 - Reading websites where users are already logged in
@@ -819,12 +859,95 @@ We welcome community contributions! Please follow these guidelines when submitti
 
 This project is open-sourced under the [MIT License](LICENSE).
 
+**License Compliance:**
+- This project is a derivative work of [Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill) (MIT License)
+- All upstream license terms and attribution requirements are fully preserved
+- The MIT License text is included in [LICENSE](LICENSE) file
+- Third-party dependencies maintain their original licenses
+
+## Disclaimer & Legal Notice
+
+**Not an Official Tencent Product:**
+- BrowserSkill Pro is **NOT** developed, endorsed, or maintained by Tencent or any of its affiliates
+- It is a community-driven project that builds upon the open-source BrowserSkill framework
+- Use of this software is at your own risk
+
+**Trademark & Branding:**
+- "BrowserSkill" may be a trademark or registered trademark of Tencent
+- "BrowserSkill Pro" and related branding are used for identification purposes only
+- No official association with or endorsement by Tencent is implied
+
+**Security & Maintenance:**
+- For **official security updates** and stable releases, please refer to [Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill)
+- Community-maintained versions may have different update cycles and support levels
+- Always review code and security practices before using in production environments
+
+## Project Lineage & Attribution
+
+### Upstream Projects (Original Work)
+
+| Project | Description | URL | License |
+|---------|-------------|-----|---------|
+| **BrowserSkill** | Original daemon + browser extension by Tencent | [github.com/Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill) | MIT |
+
+### Direct Dependencies (Base Version)
+
+| Project | Description | URL |
+|---------|-------------|-----|
+| **browserskill-new** | Enhanced base version with Windows fixes, multi-browser support, CI/CD workflows | [github.com/916938/browserskill-new](https://github.com/916938/browserskill-new) |
+
+> **Note:** `browserskill-new` serves as the direct base for this Pro edition. It includes:
+> - Windows platform compatibility improvements
+> - Multi-browser instance management
+> - PR-based CI workflow integration
+> - Enhanced error handling and logging
+
+### This Edition (Pro Features)
+
+**BrowserSkill Pro** adds on top of `browserskill-new`:
+
+- ✅ Complete multi-platform installation system (Windows PowerShell / Linux Bash / Docker)
+- ✅ Support for 4+ AI Agent environments (CodeBuddy/Claude Code/WorkBuddy/Codex)
+- ✅ Comprehensive documentation (835-line bilingual README)
+- ✅ Docker containerization with production orchestration
+- ✅ Layered architecture (SKILL.md → protocol.md → operations.md → how-it-works.md)
+- ✅ Privacy-focused design with explicit data handling rules
+- ✅ Automated testing and verification tools
+
+### Supported Platforms
+
+| Platform | Agent Environment | Installation Path |
+|----------|------------------|-------------------|
+| CodeBuddy | Primary | `~/.codebuddy/skills/browserskill-pro` |
+| Claude Code | Skills Mode | `~/.claude/skills/browserskill-pro` |
+| Claude Code | Commands Mode | `~/.claude/commands/browserskill-pro` |
+| WorkBuddy | Enterprise | `~/.workbuddy/skills/browserskill-pro` |
+| Codex | OpenAI | `~/.codex/skills/browserskill-pro` |
+| Docker | Containerized | `browserskill-pro:latest` image |
+
 ## Acknowledgments
 
-- [BrowserSkill](https://github.com/Tencent/BrowserSkill) — Underlying daemon and browser extensions
-- [CodeBuddy](https://cnb.cool/codebuddy/codebuddy-code) — Primarily supported AI Agent platform
-- [Claude Code](https://claude.ai/) — Multi-mode Agent platform support
-- All contributors and users
+We extend our sincere gratitude to the following projects and communities:
+
+### Core Technology
+- **[Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill)** — The original daemon and browser extension that makes all of this possible. Thank you to the Tencent team for open-sourcing this incredible technology.
+- **[916938/browserskill-new](https://github.com/916938/browserskill-new)** — The enhanced base version with critical Windows compatibility fixes and multi-browser support. The foundation upon which this Pro edition is built.
+
+### AI Agent Platforms
+- **[CodeBuddy](https://cnb.cool/codebuddy/codebuddy-code)** — Our primary supported AI Agent platform. Excellent integration experience.
+- **[Claude Code](https://claude.ai/)** — Anthropic's AI coding assistant with dual-mode skill/command support.
+- **WorkBuddy** — Enterprise-grade AI agent environment support.
+- **Codex/OpenAI** — OpenAI's coding assistant with comprehensive metadata integration.
+
+### Community & Contributors
+- All **contributors** who have submitted issues, pull requests, and feedback
+- **Users** who have tested and provided valuable improvement suggestions
+- The **open-source community** for fostering innovation and collaboration
+
+### Special Thanks
+- To the **Tencent BrowserSkill team** for creating such a useful tool and making it open-source
+- To the **AI Agent ecosystem developers** who make integrations like this possible
+- To **you**, the user, for trusting this community-driven project
 
 ---
 
