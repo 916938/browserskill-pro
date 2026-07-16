@@ -137,6 +137,191 @@ cp -R browserskill-pro/skill/. ~/.codex/skills/browserskill-pro/
 
 重新启动 Agent 或打开新会话，使 skill 列表重新加载。
 
+#### CodeBuddy / WorkBuddy 环境安装（Windows）
+
+如果你使用 **CodeBuddy** 或 **WorkBuddy** 作为 AI Agent 环境，可以通过以下步骤从 GitHub 仓库快速安装：
+
+**方法一：Git 克隆 + 手动复制（推荐）**
+
+```powershell
+# 1. 克隆仓库到临时目录
+git clone https://github.com/916938/browserskill-pro.git %TEMP%\browserskill-pro-install
+
+# 2. 创建目标 skills 目录（如果不存在）
+$codebuddySkillsPath = "$env:USERPROFILE\.codebuddy\skills\browserskill-pro"
+New-Item -ItemType Directory -Path $codebuddySkillsPath -Force | Out-Null
+
+# 3. 复制 skill 目录内容到 CodeBuddy skills 路径
+Copy-Item "%TEMP%\browserskill-pro-install\skill\*" -Destination $codebuddySkillsPath -Recurse -Force
+
+# 4. 清理临时目录
+Remove-Item -Recurse -Force %TEMP%\browserskill-pro-install
+
+# 5. 验证安装成功
+Write-Host "✅ BrowserSkill Pro 已安装到: $codebuddySkillsPath"
+Get-ChildItem $codebuddySkillsPath | Select-Object Name
+```
+
+**方法二：PowerShell 一键脚本（自动化）**
+
+```powershell
+# 将以下代码保存为 install-browserskill-pro.ps1 并运行
+# 或直接在 PowerShell ISE 中执行
+
+param(
+    [string]$RepoUrl = "https://github.com/916938/browserskill-pro.git",
+    [string]$Branch = "main",
+    [switch]$Force
+)
+
+Write-Host "🚀 开始安装 BrowserSkill Pro..." -ForegroundColor Cyan
+
+# 检测 Agent 类型并确定安装路径
+$possiblePaths = @(
+    "$env:USERPROFILE\.codebuddy\skills\browserskill-pro",
+    "$env:USERPROFILE\.workbuddy\skills\browserskill-pro",
+    "$env:USERPROFILE\.codex\skills\browserskill-pro",
+    "$env:APPDATA\CodeBuddy\skills\browserskill-pro"
+)
+
+$targetPath = $null
+foreach ($path in $possiblePaths) {
+    if (Test-Path (Split-Path $path)) {
+        $targetPath = $path
+        break
+    }
+}
+
+if (-not $targetPath) {
+    # 默认使用 .codebuddy/skills
+    $targetPath = "$env:USERPROFILE\.codebuddy\skills\browserskill-pro"
+}
+
+Write-Host "📂 安装路径: $targetPath" -ForegroundColor Yellow
+
+# 检查是否已安装
+if ((Test-Path $targetPath) -and -not $Force) {
+    Write-Host "⚠️  目标目录已存在。如需覆盖请使用 -Force 参数。" -ForegroundColor Red
+    exit 1
+}
+
+try {
+    # 创建临时目录
+    $tempDir = Join-Path $env:TEMP "bsk-install-$([guid]::NewGuid().ToString('N'))"
+    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+
+    Write-Host "📥 正在克隆仓库..." -ForegroundColor Green
+    git clone --branch $Branch --depth 1 $RepoUrl $tempDir 2>&1 | ForEach-Object { $_ }
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Git clone 失败"
+    }
+
+    # 复制文件
+    New-Item -ItemType Directory -Path $targetPath -Force | Out-Null
+    Copy-Item "$tempDir\skill\*" -Destination $targetPath -Recurse -Force
+
+    # 验证关键文件
+    $requiredFiles = @("SKILL.md", "scripts", "references")
+    $allPresent = $true
+    foreach ($file in $requiredFiles) {
+        if (-not (Test-Path (Join-Path $targetPath $file))) {
+            Write-Host "❌ 缺少必要文件: $file" -ForegroundColor Red
+            $allPresent = $false
+        }
+    }
+
+    if ($allPresent) {
+        Write-Host "`n✅ 安装成功！" -ForegroundColor Green
+        Write-Host "`n📋 安装详情:" -ForegroundColor Cyan
+        Write-Host "   版本信息:" (Get-Content (Join-Path $targetPath "SKILL.md") -TotalCount 5 | Select-Object -First 5)
+        Write-Host ""
+        Get-ChildItem $targetPath | Format-Table Name, Mode, LastWriteTime -AutoSize
+        Write-Host ""
+        Write-Host "🔧 后续步骤:" -ForegroundColor Yellow
+        Write-Host "   1. 重启 CodeBuddy / WorkBuddy 以加载新 skill"
+        Write-Host "   2. 运行 doctor.py 检查环境:"
+        Write-Host "      py -3 `"$targetPath\scripts\doctor.py`" --wait-connected 20"
+        Write-Host "   3. 在对话中使用: 使用 \$browserskill-pro 打开我的浏览器"
+    } else {
+        throw "安装验证失败：缺少必要文件"
+    }
+}
+catch {
+    Write-Host "`n❌ 安装失败: $_" -ForegroundColor Red
+    exit 1
+}
+finally {
+    # 清理临时目录
+    if (Test-Path $tempDir) {
+        Remove-Item -Recurse -Force $tempDir -ErrorAction SilentlyContinue
+    }
+}
+```
+
+**运行一键安装脚本：**
+
+```powershell
+# 方式 A：直接下载并执行（需要网络）
+irm https://raw.githubusercontent.com/916938/browserskill-pro/main/install.ps1 | iex
+
+# 方式 B：保存后本地执行
+# 1. 先将上面的代码保存为 install.ps1
+# 2. 执行：
+.\install.ps1 -Branch main
+
+# 强制覆盖已有安装：
+.\install.ps1 -Branch main -Force
+```
+
+**方法三：手动下载 ZIP 文件**
+
+1. 访问 https://github.com/916938/browserskill-pro
+2. 点击绿色的 **"Code"** 按钮 → **"Download ZIP"**
+3. 解压到临时目录（例如 `C:\Temp\browserskill-pro-main`）
+4. 打开 PowerShell 执行：
+
+```powershell
+# 设置变量
+$zipExtractPath = "C:\Temp\browserskill-pro-main"  # 改为你的解压路径
+$targetPath = "$env:USERPROFILE\.codebuddy\skills\browserskill-pro"
+
+# 创建目录并复制
+New-Item -ItemType Directory -Path $targetPath -Force | Out-Null
+Copy-Item "$zipExtractPath\skill\*" -Destination $targetPath -Recurse -Force
+
+# 验证
+Test-Path "$targetPath\SKILL.md"
+```
+
+#### 验证安装（CodeBuddy / WorkBuddy）
+
+安装完成后，在 **CodeBuddy / WorkBuddy** 对话框中测试：
+
+```text
+使用 $browserskill-pro 帮我查看当前浏览器的状态
+```
+
+或者在终端中运行自检：
+
+```powershell
+# 替换 <your-path> 为实际安装路径
+py -3 "<your-path-to-codebuddy-skills>\browserskill-pro\scripts\doctor.py" --wait-connected 20
+```
+
+**预期输出示例：**
+```json
+{
+  "ready": true,
+  "reason": "All checks passed",
+  "checks": [
+    {"name": "daemon_running", "status": "passed"},
+    {"name": "port_52800_listening", "status": "passed"},
+    {"name": "extension_connected", "status": "passed"}
+  ]
+}
+```
+
 ### 3. 自检
 
 在发送浏览器动作前，先确认 daemon 和扩展都已就绪：
