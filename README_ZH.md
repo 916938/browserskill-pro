@@ -1,0 +1,836 @@
+<div align="center">
+
+**[English](README.md) | 简体中文**
+
+# BrowserSkill Pro
+
+**面向本地 AI Agent 的真实浏览器控制 Skill，强调隐私最小化和标签页安全**
+
+[![Agent Skill](https://img.shields.io/badge/Agent-Skill-black.svg)](skill/SKILL.md)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg)](#快速开始)
+[![Version](https://img.shields.io/badge/Version-v1.0.0-green.svg)](CHANGELOG.md)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+</div>
+
+---
+
+## 目录
+
+- [简介](#简介)
+- [特性](#特性)
+- [快速开始](#快速开始)
+- [安装指南](#安装指南)
+  - [Windows 安装](#windows-安装-codebuddy--workbuddy--claude-code--codex)
+  - [Linux/macOS 安装](#linuxmacos-安装-codebuddy--workbuddy--claude-code--codex)
+  - [Docker 部署](#docker-容器化部署)
+- [多环境支持](#多环境支持)
+- [使用示例](#使用示例)
+- [隐私与安全](#隐私与安全)
+- [项目结构](#项目结构)
+- [验证测试](#验证测试)
+- [已知限制](#已知限制)
+- [版本规划](#版本规划)
+- [贡献指南](#贡献指南)
+
+---
+
+## 简介
+
+BrowserSkill Pro 是一个独立的 Agent Skill，通过本机 **BrowserSkill daemon** 控制用户**真实、已登录**的浏览器。
+
+只要 Agent 能读取 Agent Skill 指令，并能执行本地 shell 命令，就可以使用核心工作流。本项目额外提供 OpenAI/Codex 元数据，但核心协议和操作说明不依赖某个特定 Agent 产品。
+
+### 适用场景
+
+- 阅读用户已经登录的网站
+- 在现有标签页中搜索、点击和填写内容
+- 保存页面截图或 PDF
+- 排查点击后页面没有变化、后台标签页或弹窗拦截
+
+### 架构概览
+
+```
+Local AI Agent (CodeBuddy / Claude Code / WorkBuddy / Codex)
+       │
+       ▼
+   bsk CLI ──► 127.0.0.1:52800 daemon (WebSocket)
+                    │
+                    ▼
+          浏览器扩展 + 真实 Chromium 标签页
+```
+
+> 本项目不是搜索引擎，也不包含浏览器驱动。它依赖 **BrowserSkill daemon** 和浏览器扩展，并在原有 skill 的基础上补充跨 Agent 工作流约束。
+
+---
+
+## 特性
+
+| 特性 | 说明 |
+|------|------|
+| **标签页借用/归还** | `bsk tab borrow` / `bsk tab return` 安全借用用户标签页，任务完成后归还 |
+| **人工介入请求** | `bsk request-help` 主动请求用户处理 CAPTCHA、登录等场景 |
+| **WebSocket 通信** | daemon 通过 WebSocket 与扩展通信，高效低延迟 |
+| **丰富的 CLI 命令** | 内置 `press`、`select`、`navigate`、`reload`、`get-html` 等 |
+| **跨平台支持** | Windows (PowerShell)、Linux/macOS (Bash) 原生 helper |
+| **智能快照控制** | 支持自动策略、精简 UI 摘要或完整快照写入文件 |
+| **Doctor 自检** | 检查 daemon、端口和扩展连接，输出 JSON reason |
+| **智能等待** | 按 URL、标题或可访问性文本轮询，不重复原始点击 |
+| **弹窗诊断** | 页面无变化时依次检查 SPA、后台标签页和弹窗拦截 |
+| **隐私最小化** | 限制 Cookie、认证头、浏览器存储和私人内容的读取 |
+| **多浏览器支持** | `bsk browsers` 列出所有实例，每个浏览器独立会话 |
+| **分层文档** | Agent 操作、协议参考、故障恢复、原理文档彼此分离 |
+
+---
+
+## 快速开始
+
+### 1. 安装 BrowserSkill
+
+> 使用本 Skill 前需要安装本地 daemon 和浏览器扩展
+
+**macOS / Linux（推荐）：**
+```bash
+curl -fsSL https://raw.githubusercontent.com/Tencent/BrowserSkill/main/install.sh | sh
+```
+
+**Windows（PowerShell）：**
+```powershell
+irm https://raw.githubusercontent.com/Tencent/BrowserSkill/main/install.ps1 | iex
+```
+
+**或通过 Cargo：**
+```bash
+cargo install bsk-cli
+```
+
+### 2. 安装浏览器扩展
+
+从 [Chrome Web Store](https://chromewebstore.google.com/detail/hhcmgoofomhgciiibhipgmgkgnoenaoi) 安装，或从源码构建：
+
+```bash
+cd <browser-skill-repo>
+pnpm install && pnpm ext:build  # 输出: apps/extension/dist/chrome-mv3
+```
+
+然后在 Chrome 中加载已解压的扩展程序（`chrome://extensions` → 开发者模式 → 加载已解压的扩展程序）。
+
+> 详细构建步骤请参阅 [operations.md - Building the extension from source](skill/references/operations.md#building-the-extension-from-source)
+
+### 3. 安装本 Skill
+
+将仓库中的 `skill/` 目录复制到你的 Agent skills 目录：
+
+```text
+<agent-skills-directory>/
+└── browserskill-pro/
+    ├── SKILL.md          # 核心 Agent 指令
+    ├── scripts/          # Python/Bash/PowerShell helpers
+    ├── examples/         # 工作流样例
+    └── references/       # 协议和操作文档
+```
+
+### 4. 自检验证
+
+**Windows：**
+```powershell
+py -3 <your-path>\browserskill-pro\scripts\doctor.py --wait-connected 20
+```
+
+**Linux / macOS：**
+```bash
+python3 <your-path>/browserskill-pro/scripts/doctor.py --wait-connected 20
+```
+
+预期输出：
+```json
+{
+  "ready": true,
+  "reason": "All checks passed",
+  "checks": [
+    {"name": "daemon_running", "status": "passed"},
+    {"name": "port_52800_listening", "status": "passed"},
+    {"name": "extension_connected", "status": "passed"}
+  ]
+}
+```
+
+### 5. 开始使用
+
+在 Agent 对话框中输入：
+
+```text
+使用 $browserskill-pro 查看我当前登录的网页
+```
+
+```text
+使用 $browserskill-pro 在知乎页面搜索 OpenAI
+```
+
+```text
+使用 $browserskill-pro 截取当前页面，并在完成后删除临时文件
+```
+
+---
+
+## 安装指南
+
+### Windows 安装（CodeBuddy / WorkBuddy / Claude Code / Codex）
+
+#### 方法一：Git 克隆 + 手动复制（推荐）
+
+```powershell
+# 1. 克隆仓库
+git clone https://github.com/916938/browserskill-pro.git %TEMP%\bsk-install
+
+# 2. 复制到目标路径（根据你的 Agent 环境选择）
+$target = "$env:USERPROFILE\.codebuddy\skills\browserskill-pro"     # CodeBuddy
+# $target = "$env:USERPROFILE\.workbuddy\skills\browserskill-pro"   # WorkBuddy
+# $target = "$env:USERPROFILE\.claude\skills\browserskill-pro"      # Claude Code (Skills)
+# $target = "$env:USERPROFILE\.claude\commands\browserskill-pro"    # Claude Code (Commands)
+# $target = "$env:USERPROFILE\.codex\skills\browserskill-pro"        # Codex
+
+New-Item -ItemType Directory -Path $target -Force | Out-Null
+Copy-Item "%TEMP%\bsk-install\skill\*" -Destination $target -Recurse -Force
+
+# 3. 清理并验证
+Remove-Item -Recurse -Force %TEMP%\bsk-install
+Test-Path "$target\SKILL.md"
+```
+
+#### 方法二：PowerShell 一键脚本（自动化）
+
+```powershell
+# 直接下载并执行
+irm https://raw.githubusercontent.com/916938/browserskill-pro/main/install.ps1 | iex
+
+# 或保存后运行（可审查代码）
+irm https://raw.githubusercontent.com/916938/browserskill-pro/main/install.ps1 -OutFile install.ps1
+.\install.ps1 -Branch main
+
+# 强制覆盖已有安装
+.\install.ps1 -Branch main -Force
+```
+
+脚本功能：
+- ✅ 自动检测 Agent 环境（CodeBuddy / WorkBuddy / Claude Code / Codex）
+- ✅ 支持强制覆盖（带备份）
+- ✅ 安装后自动验证
+- ✅ 彩色输出和错误提示
+
+#### 方法三：手动下载 ZIP
+
+1. 访问 https://github.com/916938/browserskill-pro
+2. 点击 **Code** → **Download ZIP**
+3. 解压后复制 `skill/` 目录内容到目标路径
+
+---
+
+### Linux/macOS 安装（CodeBuddy / WorkBuddy / Claude Code / Codex）
+
+#### 前置条件
+
+```bash
+# 检查必要工具
+git --version && python3 --version && curl --version
+
+# 如缺少依赖，按系统安装：
+# Ubuntu/Debian: sudo apt update && sudo apt install -y git python3 curl
+# macOS: brew install git python3 curl
+# Fedora: sudo dnf install -y git python3 curl
+# Arch: sudo pacman -S git python3 curl
+```
+
+#### 方法一：Git 克隆 + 手动复制（推荐）
+
+```bash
+# 1. 克隆仓库
+TMPDIR=$(mktemp -d)
+git clone https://github.com/916938/browserskill-pro.git "$TMPDIR/bsk"
+
+# 2. 选择目标路径（根据你的 Agent 环境）
+TARGET="$HOME/.codebuddy/skills/browserskill-pro"           # CodeBuddy
+# TARGET="$HOME/.workbuddy/skills/browserskill-pro"         # WorkBuddy
+# TARGET="$HOME/.claude/skills/browserskill-pro"            # Claude Code (Skills)
+# TARGET="$HOME/.claude/commands/browserskill-pro"          # Claude Code (Commands)
+# TARGET="$HOME/.codex/skills/browserskill-pro"             # Codex
+
+# 3. 复制文件
+mkdir -p "$(dirname "$TARGET")"
+cp -r "$TMPDIR/bsk/skill/." "$TARGET"
+
+# 4. 清理并验证
+rm -rf "$TMPDIR"
+test -f "$TARGET/SKILL.md" && echo "✅ 安装成功！"
+```
+
+#### 方法二：Bash 一键脚本（自动化）
+
+```bash
+# 方式 A：直接执行
+curl -fsSL https://raw.githubusercontent.com/916938/browserskill-pro/main/install.sh | bash
+
+# 方式 B：下载后执行（推荐）
+curl -fsSL https://raw.githubusercontent.com/916938/browserskill-pro/main/install.sh -o install.sh
+chmod +x install.sh
+./install.sh --branch main
+
+# 高级选项
+./install.sh --force                          # 强制覆盖
+./install.sh --dry-run                        # 试运行（不实际安装）
+./install.sh --target-path "/custom/path"     # 自定义路径
+./install.sh -v                               # 详细输出
+```
+
+#### 方法三：手动下载 ZIP
+
+```bash
+# 1. 下载并解压
+cd ~/Downloads
+unzip browserskill-pro-main.zip -d /tmp/bsk-install
+
+# 2. 复制文件
+ZIP_EXTRACT="/tmp/bsk-install/browserskill-pro-main"
+TARGET="$HOME/.codebuddy/skills/browserskill-pro"
+mkdir -p "$(dirname "$TARGET")"
+cp -r "$ZIP_EXTRACT/skill/." "$TARGET"
+
+# 3. 验证
+test -f "$TARGET/SKILL.md" && echo "✅ 安装成功！"
+```
+
+---
+
+### Docker 容器化部署
+
+适用于 CI/CD、隔离环境、统一部署场景。
+
+#### 前置条件
+
+```bash
+docker --version        # Docker Engine 20.10+
+docker compose version  # Docker Compose V2+
+```
+
+#### 方式一：单容器快速启动（推荐入门）
+
+```bash
+# 1. 构建镜像
+git clone https://github.com/916938/browserskill-pro.git
+cd browserskill-pro
+docker build -t browserskill-pro:latest .
+
+# 2. 运行自检（需连接宿主机上的 bsk daemon）
+docker run --rm \
+  --network host \
+  -v ~/.bsk:/app/.bsk:ro \
+  browserskill-pro:latest python3 skill/scripts/doctor.py --wait-connected 20
+
+# 3. 执行 snapshot 示例
+docker run --rm --network host \
+  browserskill-pro:latest python3 skill/scripts/snapshot.py --session demo --auto
+```
+
+**常用参数：**
+
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `--network host` | 使用宿主机网络访问本地 daemon | 必需 |
+| `-v` | 挂载卷（数据持久化） | `-v ./data:/app/data` |
+| `-e` | 设置环境变量 | `-e LOG_LEVEL=DEBUG` |
+| `--rm` | 退出后自动删除容器 | 测试时推荐 |
+| `-d` | 后台运行 | 生产环境推荐 |
+
+#### 方式二：Docker Compose 编排（生产环境）
+
+包含 **daemon + Chrome + Redis + 监控** 的完整部署：
+
+```bash
+# 启动所有服务
+docker compose up -d
+
+# 仅启动核心服务（不含监控）
+docker compose up -d bsk-daemon browserskill-pro redis chrome-browser
+
+# 启动开发环境（源代码热挂载）
+docker compose -f docker-compose.dev.yml up --build -d
+
+# 启动带监控的完整环境
+docker compose --profile monitoring up -d
+
+# 访问 Grafana 仪表板
+# http://localhost:3000 (默认: admin/admin)
+```
+
+**架构图：**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Docker Network (172.28.0.0/16)            │
+│                                                             │
+│  ┌──────────────┐    ┌─────────────────┐    ┌──────────┐   │
+│  │ bsk-daemon   │◄──►│browserskill-pro │◄──►│  chrome  │   │
+│  │ (WebSocket)  │    │ (Skill + Helpers)│    │(Browser) │   │
+│  │ :52800       │    │                 │    │ :9222    │   │
+│  └──────┬───────┘    └────────┬────────┘    └──────────┘   │
+│         │                     │                              │
+│         ▼                     ▼                              │
+│  ┌──────────┐          ┌─────────────┐                      │
+│  │   redis  │          │ monitoring  │ (Grafana, 可选)      │
+│  │ :6379    │          │ :3000       │                      │
+│  └──────────┘          └─────────────┘                      │
+│                                                             │
+│  Volumes: data, screenshots, snapshots, chrome-profile, grafana│
+└─────────────────────────────────────────────────────────────┘
+```
+
+**自定义配置（`.env` 文件）：**
+
+```bash
+BSK_AUTH_TOKEN=your-secure-token-here
+BSK_MAX_SESSIONS=20
+CHROME_MODE=headed              # 或 headless
+LOG_LEVEL=INFO                  # DEBUG, INFO, WARN, ERROR
+DOCKER_CPUS_LIMIT=2.0
+DOCKER_MEMORY_LIMIT=4G
+```
+
+#### 方式三：CI/CD 集成
+
+**GitHub Actions 示例（`.github/workflows/docker-test.yml`）：**
+
+```yaml
+name: Docker Integration Tests
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      bsk-daemon:
+        image: browserskill/bsk-daemon:latest
+        ports:
+          - 52800:52800
+        options: >-
+          --health-cmd "curl -f http://localhost:52801/health || exit 1"
+          --health-interval 10s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build & Test
+        run: |
+          docker build -t browserskill-pro:test .
+          docker run --rm --network host browserskill-pro:test \
+            python3 -m unittest discover -s tests -v
+```
+
+#### 性能优化与安全加固
+
+**减小镜像体积：** 多阶段构建已实现在 Dockerfile 中
+
+**利用缓存层：** 已优化 `.dockerignore`
+
+**生产安全加固（补充配置）：**
+
+```yaml
+services:
+  browserskill-pro:
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:size=100M
+      - /app/data/screenshots,size=1G
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+```
+
+**故障排除：**
+
+| 问题 | 可能原因 | 解决方案 |
+|------|---------|----------|
+| 无法连接 daemon | 网络模式错误 | 使用 `--network host` |
+| 权限被拒绝 | 卷挂载权限问题 | 调整 UID (`user: "1000:1000"`) |
+| Chrome 无法启动 | 缺少共享内存 | 增加 `shm_size: '2gb'` |
+| 容器重启循环 | 健康检查失败 | 查看日志 `docker compose logs <service>` |
+
+**镜像管理：**
+
+```bash
+# 多平台构建
+docker buildx build --platform linux/amd64,linux/arm64 -t browserskill-pro:latest .
+
+# 推送到仓库
+docker tag browserskill-pro:latest ghcr.io/916938/browserskill-pro:v1.0.0
+docker push ghcr.io/916938/browserskill-pro:v1.0.0
+
+# 导出/导入（离线环境）
+docker save -o browserskill-pro.tar browserskill-pro:latest
+docker load -i browserskill-pro.tar
+```
+
+---
+
+## 多环境支持
+
+本 Skill 支持 **CodeBuddy、WorkBuddy、Claude Code、Codex** 四大 AI Agent 平台：
+
+| Agent 平台 | Skills 路径 | Commands 路径 | 备注 |
+|-----------|------------|---------------|------|
+| **CodeBuddy** | `~/.codebuddy/skills/browserskill-pro` | - | 主要支持平台 |
+| **Claude Code** | `~/.claude/skills/browserskill-pro` | `~/.claude/commands/browserskill-pro` | 双模式支持（推荐 Skills） |
+| **WorkBuddy** | `~/.workbuddy/skills/browserskill-pro` | - | 企业级 Agent |
+| **Codex** | `~/.codex/skills/browserskill-pro` | - | OpenAI 编程助手 |
+
+### 自动检测优先级
+
+当使用一键安装脚本时，自动检测顺序为：
+**CodeBuddy > Claude Code > WorkBuddy > Codex**
+
+可通过环境变量或命令行参数覆盖默认路径：
+
+```bash
+# Linux/macOS
+CODEBUDDY_SKILLS_DIR=/custom/path ./install.sh
+./install.sh --target-path "$HOME/.my-agent/skills/browserskill-pro"
+
+# Windows
+$env:CODEBUDDY_SKILLS_DIR="C:\Custom\Path"
+.\install.ps1
+```
+
+### 卸载
+
+```bash
+# Linux/macOS
+rm -rf ~/.codebuddy/skills/browserskill-pro
+
+# PowerShell
+Remove-Item -Recurse -Force "$env:USERPROFILE\.codebuddy\skills\browserskill-pro"
+```
+
+---
+
+## 使用示例
+
+### 页面快照
+
+**Windows：**
+```powershell
+# 精简模式（适合定位元素）
+py -3 .\skill\scripts\snapshot.py --session demo --auto
+py -3 .\skill\scripts\snapshot.py --session demo --mode compact
+
+# 完整模式（写入临时文件）
+py -3 .\skill\scripts\snapshot.py --session demo --mode file
+```
+
+**Linux / macOS：**
+```bash
+python3 ./skill/scripts/snapshot.py --session demo --auto
+python3 ./skill/scripts/snapshot.py --session demo --mode file
+```
+
+### 截图
+
+**Windows：**
+```powershell
+py -3 .\skill\scripts\screenshot.py --session demo
+```
+
+**Linux / macOS：**
+```bash
+python3 ./skill/scripts/screenshot.py --session demo
+```
+
+### 智能等待
+
+**Windows：**
+```powershell
+py -3 .\skill\scripts\wait_for.py --session demo `
+  --url-contains "example.com" --timeout 10
+py -3 .\skill\scripts\wait_for.py --session demo `
+  --visible-text "已保存" --timeout 10
+```
+
+**Linux / macOS：**
+```bash
+python3 ./skill/scripts/wait_for.py --session demo \
+  --url-contains "example.com" --timeout 10
+python3 ./skill/scripts/wait_for.py --session demo \
+  --visible-text "已完成" --timeout 10
+```
+
+### Daemon 冒烟测试（无副作用）
+
+**PowerShell：**
+```powershell
+bsk session start
+$sessionId = bsk session start
+bsk tab list --session $sessionId
+bsk session stop $sessionId
+```
+
+**Bash：**
+```bash
+SESSION_ID=$(bsk session start)
+bsk tab list --session $SESSION_ID
+bsk session stop $SESSION_ID
+```
+
+---
+
+## 隐私与安全
+
+### 数据流与权限边界
+
+```
+Local AI agent
+    │
+    ▼
+bsk CLI ──► 127.0.0.1:52800 daemon (WebSocket)
+                │
+                ▼
+      浏览器扩展和真实标签页
+```
+
+**Helper 脚本行为约束：**
+
+- ✅ 只通过 `bsk` CLI 发送命令
+- ✅ 不保存 Cookie、密码、认证令牌或浏览器存储
+- ✅ 不包含遥测或第三方分析代码
+- ⚠️ 截图/快照/PDF 返回给 Agent 后进入 AI 会话处理范围
+
+### 默认隐私规则
+
+1. **最少读取原则** — 只读取完成任务所需的最少页面内容
+2. **敏感信息保护** — 不返回 Cookie、Authorization、token、密码字段或浏览器存储
+3. **临时文件清理** — 截图和 PDF 任务完成后删除（除非用户明确要求保留）
+4. **危险操作确认** — 上传、发送、发布、购买、删除和权限变更前必须确认
+5. **不绕过安全机制** — 不绕过验证码、付费墙、年龄限制、浏览器警告
+6. **人工介入机制** — 使用 `bsk request-help` 处理需要人工确认的场景
+
+### 多浏览器安全隔离
+
+```bash
+# 列出所有已连接的浏览器实例
+bsk browsers
+
+# 在指定浏览器上启动会话（独立隔离）
+bsk session start --browser <instance-id-or-label>
+```
+
+> 如果连接多个浏览器但未指定 `--browser`，`bsk session start` 会输出可用实例列表。
+>
+> **警告：** 此 Skill 能访问真实登录态，应按高权限工具对待。
+
+### 外部依赖说明
+
+BrowserSkill daemon 和浏览器扩展是外部依赖，其数据处理行为不受本仓库控制。
+安装和使用前请审阅对应产品的隐私政策与实现。
+
+---
+
+## 项目结构
+
+```text
+browserskill-pro/
+├── README.md                           # 本文档
+├── CHANGELOG.md                        # 版本更新日志
+├── LICENSE                             # 开源许可证
+├── AGENTS.md                           # Agent 协作规范
+├── docs/
+│   └── v1.1.0-roadmap.md              # 版本规划文档
+├── install.ps1                         # Windows 一键安装脚本
+├── install.sh                          # Linux/macOS 一键安装脚本
+├── Dockerfile                          # Docker 多阶段构建
+├── docker-compose.yml                 # 生产环境编排
+├── docker-compose.dev.yml             # 开发环境编排
+├── .dockerignore                       # Docker 构建忽略规则
+│
+├── skill/                              # 🔑 核心技能包
+│   ├── SKILL.md                        # Agent 执行指令（必读）
+│   ├── agents/
+│   │   └── openai.yaml                 # OpenAI/Codex 元数据
+│   ├── examples/                       # 工作流样例
+│   │   ├── login_and_fill_form.md
+│   │   ├── scroll_and_extract.md
+│   │   ├── handle_popup.md
+│   │   └── network_debug.md
+│   ├── references/                     # 参考文档
+│   │   ├── protocol.md                 # 命令参数与响应格式
+│   │   ├── operations.md               # 安装、状态检查、故障恢复
+│   │   └── how-it-works.md             # 架构原理（人类维护者阅读）
+│   └── scripts/
+│       ├── invoke.ps1                  # PowerShell 调用封装
+│       ├── invoke.sh                   # Bash 调用封装
+│       ├── doctor.py                   # 环境自检
+│       ├── snapshot.py                 # 页面快照
+│       ├── screenshot.py               # 截图工具
+│       ├── wait_for.py                 # 智能等待
+│       ├── bsk_client.py               # bsk CLI 封装层
+│       └── screenshot.ps1              # Windows 截图辅助
+│
+└── tests/                              # 单元测试
+    ├── test_doctor.py
+    ├── test_snapshot.py
+    └── test_wait_for.py
+```
+
+**文档分层说明：**
+
+| 文档 | 目标读者 | 加载时机 |
+|------|---------|---------|
+| `SKILL.md` | AI Agent | 每次执行时加载 |
+| `protocol.md` | Agent 开发者 | 参数查询时加载 |
+| `operations.md` | DevOps/维护者 | 故障排查时加载 |
+| `how-it-works.md` | 人类维护者 | 仅架构理解时不加载 |
+
+---
+
+## 验证测试
+
+### 单元测试
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+### PowerShell 语法检查
+
+```powershell
+Get-ChildItem .\skill\scripts -Filter *.ps1 | ForEach-Object {
+    $errors = $null
+    [System.Management.Automation.Language.Parser]::ParseFile(
+        $_.FullName, [ref]$null, [ref]$errors
+    ) | Out-Null
+    if ($errors.Count) { throw $errors }
+}
+```
+
+### Bash 语法检查
+
+```bash
+bash -n skill/scripts/invoke.sh
+```
+
+### Codex 校验器（可选）
+
+若安装了 Codex 的 `skill-creator`：
+
+```powershell
+py -3 "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\quick_validate.py" .\skill
+```
+
+### Doctor 自检（无副作用）
+
+**Windows：**
+```powershell
+py -3 .\skill\scripts\doctor.py --wait-connected 20
+```
+
+**Linux / macOS：**
+```bash
+python3 ./skill/scripts/doctor.py --wait-connected 20
+```
+
+---
+
+## 已知限制
+
+| 限制类别 | 详细说明 |
+|---------|---------|
+| **平台兼容性** | PowerShell helper 以 Windows 为主；其他平台可通过 bsk CLI 调用 |
+| **Python 版本** | Python helper 需要 Python 3.8+；Bash helper 需要 Bash 4.0+ |
+| **事件信任** | 合成点击和输入无法满足要求 `event.isTrusted` 的网站 |
+| **跨域 iframe** | 顶层页面操作不能直接访问跨域 iframe 内容 |
+| **弹窗拦截** | 浏览器可能拦截站点尝试打开的弹窗或新标签页 |
+| **协议稳定性** | daemon 和扩展升级后，响应协议可能发生变化，需要重新实测 |
+| **Windows Python** | Windows 应使用 `py -3` 或 `py` 启动 Python，不要假定存在 `python3` 命令 |
+
+---
+
+## 版本规划
+
+### 当前版本：v1.0.0
+
+详见 [CHANGELOG.md](CHANGELOG.md)
+
+### 下个版本：v1.1.0（规划中）
+
+查看完整的 23 项功能规划和优先级：[docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md)
+
+**重点方向：**
+
+| 优先级 | 功能领域 | 示例 |
+|-------|---------|------|
+| **P0** | 错误恢复 | 重试机制、断点续传、优雅降级 |
+| **P1** | 性能优化 | 并发会话管理、缓存策略、资源池化 |
+| **P2** | 增强动作 | 拖拽上传、文件下载、键盘快捷键录制 |
+| **P3** | 可观测性 | 结构化日志、Prometheus 指标、分布式追踪 |
+
+---
+
+## 贡献指南
+
+我们欢迎社区贡献！提交修改前请遵循以下规范：
+
+### 代码风格
+
+1. **Python**: 遵循现有 `skill/scripts/` 中的模式。最小注释，清晰变量名
+2. **PowerShell**: 使用 `[CmdletBinding()]`, 命名参数, `-ErrorAction Stop`
+3. **Bash**: `set -euo pipefail`. 所有变量加引号
+4. **Markdown**: 2-space 缩进, LF 行结尾
+
+### 文档分层原则
+
+1. **脚本注释** — 只保留帮助理解意图的最小注释
+2. **SKILL.md** — 只写 Agent 必须执行的步骤和常见问题
+3. **协议细节** — 进入 `protocol.md`
+4. **生命周期与恢复流程** — 进入 `operations.md`
+
+### 提交流程
+
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feat/amazing-feature`)
+3. 提交更改 (`but commit main -c -m "feat: add amazing feature"`)
+4. 推送到分支 (`git push origin feat/amazing-feature`)
+5. 创建 Pull Request
+
+### 行为准则
+
+- 尊重隐私和安全原则
+- 测试所有 Helper 脚本的跨平台兼容性
+- 更新相关文档（README、CHANGELOG、参考文档）
+- 确保 CI/CD 测试通过
+
+---
+
+## 许可证
+
+本项目基于 [MIT License](LICENSE) 开源。
+
+## 致谢
+
+- [BrowserSkill](https://github.com/Tencent/BrowserSkill) — 底层 daemon 和浏览器扩展
+- [CodeBuddy](https://cnb.cool/codebuddy/codebuddy-code) — 主要支持的 AI Agent 平台
+- [Claude Code](https://claude.ai/) — 多模式 Agent 平台支持
+- 所有贡献者和使用者
+
+---
+
+<div align="center">
+
+**Made with ❤️ by the BrowserSkill Pro Team**
+
+[报告问题](https://github.com/916938/browserskill-pro/issues) · [提出建议](https://github.com/916938/browserskill-pro/discussions) · [更新日志](CHANGELOG.md)
+
+</div>
