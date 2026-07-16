@@ -111,9 +111,10 @@ BrowserSkill Pro 安装脚本 - Linux/macOS 版本
     $0 --dry-run -v
 
 支持的 Agent 环境:
-    • CodeBuddy  (~/.codebuddy/skills/)
-    • WorkBuddy  (~/.workbuddy/skills/)
-    • Codex      (~/.codex/skills/)
+• CodeBuddy  (~/.codebuddy/skills/)
+• Claude Code  (~/.claude/skills/ 或 ~/.claude/commands/)
+• WorkBuddy  (~/.workbuddy/skills/)
+• Codex      (~/.codex/skills/)
 EOF
 }
 
@@ -183,9 +184,11 @@ detect_target_path() {
 
     log_debug "正在检测 Agent skills 目录..."
 
-    # 检测顺序：CodeBuddy > WorkBuddy > Codex
+    # 检测顺序：CodeBuddy > Claude Code > WorkBuddy > Codex
     local possible_paths=(
         "$HOME/.codebuddy/skills/browserskill-pro"
+        "$HOME/.claude/skills/browserskill-pro"
+        "$HOME/.claude/commands/browserskill-pro"
         "$HOME/.workbuddy/skills/browserskill-pro"
         "$HOME/.codex/skills/browserskill-pro"
     )

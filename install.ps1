@@ -78,6 +78,14 @@ function Get-InstallPaths {
             Path = "$env:USERPROFILE\.workbuddy\skills\browserskill-pro"
         },
         @{
+            Name = "Claude Code (User Profile)"
+            Path = "$env:USERPROFILE\.claude\skills\browserskill-pro"
+        },
+        @{
+            Name = "Claude Code (Commands)"
+            Path = "$env:USERPROFILE\.claude\commands\browserskill-pro"
+        },
+        @{
             Name = "Codex (User Profile)"
             Path = "$env:USERPROFILE\.codex\skills\browserskill-pro"
         },
