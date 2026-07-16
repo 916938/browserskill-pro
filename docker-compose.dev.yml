@@ -1,0 +1,187 @@
+# ============================================================
+# BrowserSkill Pro - 开发环境 Docker Compose
+# 用于本地开发和调试，挂载源代码支持热更新
+#
+# 用法:
+#   启动:   docker-compose -f docker-compose.dev.yml up -d
+#   停止:   docker-compose -f docker-compose.dev.yml down
+#   重建:   docker-compose -f docker-compose.dev.yml up --build
+#   进入容器: docker-compose -f docker-compose.dev.yml exec browserskill-pro bash
+#   查看日志: docker-compose -f docker-compose.dev.yml logs -f browserskill-pro
+#
+# 特点:
+#   ✅ 源代码热挂载（修改代码立即生效）
+#   ✅ 调试模式（详细日志）
+#   ✅ 开发工具预装（vim, curl, netcat 等）
+#   ✅ 端口暴露（方便 IDE 远程调试）
+# ============================================================
+
+version: '3.8'
+
+services:
+
+  # ----------------------------------------------------------
+  # 开发版 BrowserSkill Pro（带热重载）
+  # ----------------------------------------------------------
+  browserskill-pro-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base          # 使用基础镜像，不包含编译后的 bsk CLI
+    container_name: bsk-pro-dev
+    restart: unless-stopped
+    stdin_open: true         # 支持交互式终端
+    tty: true                # 分配伪终端
+    
+    # 环境变量：开发模式配置
+    environment:
+      # Python 配置
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONPATH=/app
+      
+      # Debug 模式
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+      - LOG_FORMAT=verbose
+      
+      # BSK Daemon 连接（使用宿主机网络或独立 daemon 容器）
+      - BSK_DAEMON_HOST=${BSK_DAEMON_HOST:-host.docker.internal}
+      - BSK_DAEMON_PORT=52800
+      
+      # 开发便利设置
+      - TERM=xterm-256color
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+    
+    # 卷挂载：源代码热更新
+    volumes:
+      # 核心代码（读写挂载，支持实时编辑）
+      - ./skill:/app/skill:cached        # 使用 cached 提高性能（macOS/Linux）
+      - ./tests:/app/tests:cached
+      - ./.git:/app/.git:ro             # 只读 Git 历史
+      
+      # 数据目录
+      - dev-screenshots:/app/data/screenshots
+      - dev-snapshots:/app/data/snapshots
+      - dev-logs:/app/logs
+      
+      # 配置文件（可自定义）
+      - ./config/.bsk:/app/.bsk
+      
+      # 共享目录（与宿主机交换文件）
+      - ./shared:/shared:rw
+
+    # 端口映射（开发调试用）
+    ports:
+      - "5678:5678"            # Python debugger (debugpy)
+    
+    # 使用宿主机网络（便于访问本机 Chrome 和 daemon）
+    network_mode: host
+    
+    # 工作目录
+    working_dir: /app
+
+    # 启动命令：交互式 shell 或自动运行测试
+    command: >
+      bash -c '
+        echo "========================================"
+        echo " 🚀 BrowserSkill Pro 开发环境"
+        echo " 版本: v1.1.0 (Development)"
+        echo "========================================"
+        echo ""
+        echo "📂 工作目录: $(pwd)"
+        echo "📦 已安装组件:"
+        ls -la skill/ | head -10
+        echo ""
+        
+        # 安装开发依赖（如果有 requirements.txt）
+        if [ -f requirements.txt ]; then
+          pip install --no-cache-dir -r requirements.txt 2>/dev/null || true
+        fi
+        
+        # 显示可用命令
+        echo "🔧 可用的开发命令:"
+        echo "  • 运行单元测试:     python3 -m pytest tests/ -v"
+        echo "  • Doctor 自检:       python3 skill/scripts/doctor.py --help"
+        echo "  • Snapshot 测试:     python3 skill/scripts/snapshot.py --help"
+        echo "  • Bash 语法检查:     bash -n skill/scripts/invoke.sh"
+        echo "  • 进入交互 shell:   (已在容器内)"
+        echo ""
+        
+        # 如果传入参数，执行命令；否则保持运行
+        if [ "$*" != "" ]; then
+          exec "$@"
+        else
+          echo "💡 提示: 使用 docker compose exec 进入此容器进行开发"
+          echo "   示例: docker compose -f docker-compose.dev.yml exec browserskill-pro-dev bash"
+          echo ""
+          tail -f /dev/null  # 保持容器运行
+        fi
+      '
+
+    # 资源限制（防止开发时占用过多资源）
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ----------------------------------------------------------
+  # 辅助服务：独立的 BSK Daemon（可选）
+  # 用于没有本地 daemon 的 CI/CD 或纯 Docker 环境
+  # ----------------------------------------------------------
+  bsk-daemon-dev:
+    image: browserskill/bsk-daemon:latest
+    container_name: bsk-daemon-dev
+    restart: unless-stopped
+    profiles:
+      - with-daemon  # 默认不启动，需要时显式启用
+    
+    ports:
+      - "52800:52800"
+      - "52801:52801"
+    
+    environment:
+      - BSK_LOG_LEVEL=debug
+      - BSK_HOST=0.0.0.0
+    
+    volumes:
+      - dev-daemon-data:/var/lib/bsk
+
+# ============================================================
+# 开发环境专用卷
+# ============================================================
+volumes:
+  dev-screenshots:
+  dev-snapshots:
+  dev-logs:
+  dev-daemon-data:
+
+# ============================================================
+# 使用示例（保存为 Makefile 或 alias）
+# ============================================================
+# 
+# # 构建并启动开发环境
+# dev-up:
+# 	docker-compose -f docker-compose.dev.yml up --build -d
+#
+# # 进入开发容器
+# dev-shell:
+# 	docker-compose -f docker-compose.dev.yml exec browserskill-pro-dev bash
+#
+# # 运行测试
+# dev-test:
+# 	docker-compose -f docker-compose.dev.yml exec browserskill-pro-dev \
+# 		python3 -m unittest discover -s tests -v
+#
+# # 查看日志
+# dev-logs:
+# 	docker-compose -f docker-compose.dev.yml logs -f browserskill-pro-dev
+#
+# # 清理开发环境（删除卷）
+# dev-clean:
+# 	docker-compose -f docker-compose.dev.yml down -v

@@ -1,0 +1,134 @@
+# ============================================================
+# Docker 忽略文件列表
+# 优化构建上下文，排除不需要的文件以加速构建
+# ============================================================
+
+# Git 相关
+.git
+.gitignore
+.gitattributes
+
+# 文档和说明（镜像中不需要）
+README.md
+CHANGELOG.md
+LICENSE
+AGENTS.md
+docs/
+*.md
+!skill/**/*.md          # 保留 skill 内的文档
+
+# 开发和测试相关
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# IDE 和编辑器配置
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# 临时文件和环境变量
+.env
+.env.local
+.env.*.local
+.venv/
+venv/
+ENV/
+env/
+virtualenv/
+.conda/
+
+# Docker 相关（避免递归）
+docker-compose*.yml
+Dockerfile*
+.docker/
+.dockerignore
+
+# CI/CD 配置
+.github/
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+Makefile
+azure-pipelines.yml
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# 大型数据文件（避免包含在镜像中）
+data/
+screenshots/
+snapshots/
+logs/*.log
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.zip
+*.tar.gz
+*.rar
+
+# Node.js / 前端构建产物（如果有）
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python 虚拟环境和包管理
+Pipfile.lock
+poetry.lock
+setup.cfg
+pyproject.toml
+tox.ini
+.nox/
+
+# 安全和敏感信息
+*.pem
+*.key
+*.crt
+*.p12
+credentials.json
+service-account.json
+.secrets/
+
+# 性能分析结果
+.prof
+*.prof
+
+# 缓存目录
+.cache/
+.parcel-cache/
+.nextcache/
+.eslintcache
+.stylelintcache
+
+# 其他
+*.log
+*.pid
+*.seed
+*.pid.lock

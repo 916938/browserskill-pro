@@ -1,0 +1,223 @@
+# ============================================================
+# BrowserSkill Pro - Docker Compose 编排
+# 完整的浏览器自动化开发环境
+#
+# 用法:
+#   开发环境:  docker-compose -f docker-compose.dev.yml up -d
+#   生产环境:  docker-compose up -d
+#   停止:      docker-compose down
+#   查看日志:  docker-compose logs -f
+#
+# 包含服务:
+#   1. bsk-daemon: BrowserSkill daemon (WebSocket server)
+#   2. browserskill-pro: Skill 运行时 + Python helpers
+#   3. chrome-browser: Headed/headless Chrome with extension
+#   4. (可选) redis: 缓存和会话存储
+# ============================================================
+
+version: '3.8'
+
+services:
+
+  # ----------------------------------------------------------
+  # 服务 1: BrowserSkill Daemon（核心通信层）
+  # ----------------------------------------------------------
+  bsk-daemon:
+    image: browserskill/bsk-daemon:latest
+    # 或使用本地构建:
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile.daemon
+    container_name: bsk-daemon
+    restart: unless-stopped
+    ports:
+      - "52800:52800"        # WebSocket 主端口
+      - "52801:52801"        # HTTP API /metrics 端口
+    environment:
+      - BSK_LOG_LEVEL=info
+      - BSK_HOST=0.0.0.0
+      - BSK_PORT=52800
+      - BSK_MAX_SESSIONS=10
+      - BSK_IDLE_TIMEOUT=300
+      # Redis 配置（如果启用）
+      - REDIS_URL=redis://redis:6379/0
+      # 安全配置
+      - BSK_ALLOW_ORIGIN=*
+      - BSK_AUTH_TOKEN=${BSK_AUTH_TOKEN:-}  # 从 .env 文件读取
+    volumes:
+      # 持久化 daemon 数据（可选）
+      - bsk-data:/var/lib/bsk
+      # 共享日志目录
+      - ./logs:/app/logs:ro
+    networks:
+      - browserskill-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:52801/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ----------------------------------------------------------
+  # 服务 2: BrowserSkill Pro（Skill + Helpers）
+  # ----------------------------------------------------------
+  browserskill-pro:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: browserskill-pro
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+      - BSK_DAEMON_HOST=bsk-daemon
+      - BSK_DAEMON_PORT=52800
+      - BSK_TIMEOUT_MS=30000
+      # 缓存配置
+      - CACHE_ENABLED=true
+      - CACHE_TTL_SECONDS=30
+      # 日志配置
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+    volumes:
+      # 挂载 skill 目录（开发时可热更新）
+      - ./skill:/app/skill:ro          # 只读挂载（生产环境）
+      # - ./skill:/app/skill           # 读写挂载（开发环境）
+      
+      # 数据持久化
+      - screenshots-data:/app/data/screenshots
+      - snapshots-data:/app/data/snapshots
+      
+      # 配置文件挂载（可选）
+      - ./config/.bsk:/app/.bsk:ro
+    
+    networks:
+      - browserskill-network
+    command: >
+      bash -c "
+        echo '🚀 BrowserSkill Pro 容器启动...' &&
+        python3 skill/scripts/doctor.py --wait-connected 60 ||
+        echo '⚠️ Daemon 未就绪，容器将继续运行' &&
+        tail -f /dev/null  # 保持容器运行（用于调试）
+      "
+    
+    # 如果需要作为一次性任务运行，使用以下命令：
+    # command: ["python3", "skill/scripts/doctor.py", "--wait-connected", "20"]
+    
+    depends_on:
+      bsk-daemon:
+        condition: service_healthy
+
+  # ----------------------------------------------------------
+  # 服务 3: Chrome 浏览器（带扩展）
+  # ----------------------------------------------------------
+  chrome-browser:
+    image: browser/chrome:stable
+    # 或使用官方 Chrome 镜像:
+    # image: zenika/alpine-chrome:latest
+    container_name: chrome-browser
+    restart: unless-stopped
+    shm_size: '2gb'              # 防止 Chrome OOM
+    privileged: true             # 需要 sandbox 权限
+    ports:
+      - "9222:9222"              # Chrome DevTools Protocol 端口
+    environment:
+      - DISPLAY=:99             # 虚拟显示（headless 模式不需要）
+      - CHROME_ARGS=--no-sandbox --disable-gpu --remote-debugging-port=9222
+    volumes:
+      # Chrome 用户数据持久化
+      - chrome-profile:/home/chrome/.chrome
+      # 扩展目录（从宿主机加载）
+      - ./extensions:/opt/extensions:ro
+    networks:
+      - browserskill-network
+    # 启动脚本：安装扩展并打开浏览器
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        echo "🌐 启动 Chrome 浏览器..."
+        
+        # 加载 BrowserSkill 扩展（如果有）
+        if [ -d "/opt/extensions/browserskill" ]; then
+          echo "📦 加载 BrowserSkill 扩展..."
+          CHROME_ARGS="$CHROME_ARGS --load-extension=/opt/extensions/browserskill"
+        fi
+        
+        # 根据模式选择 headed 或 headless
+        if [ "${CHROME_MODE:-headed}" = "headless" ]; then
+          exec google-chrome $CHROME_ARGS --headless=new about:blank
+        else
+          # 使用 Xvfb 作为虚拟显示（headed 模式）
+          Xvfb :99 -screen 0 1920x1080x24 &
+          sleep 2
+          exec google-chrome $CHROME_ARGS --window-size=1920,1080 about:blank
+        fi
+
+  # ----------------------------------------------------------
+  # 服务 4: Redis（缓存和会话存储，可选）
+  # ----------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: bsk-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - browserskill-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # ----------------------------------------------------------
+  # 服务 5: 监控仪表板（Grafana + Prometheus，可选）
+  # ----------------------------------------------------------
+  monitoring:
+    image: grafana/grafana:latest
+    container_name: bsk-monitoring
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - browserskill-network
+    profiles:
+      - monitoring  # 默认不启动，需显式启用
+
+# ============================================================
+# 网络定义
+# ============================================================
+networks:
+  browserskill-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# ============================================================
+# 卷定义（数据持久化）
+# ============================================================
+volumes:
+  bsk-data:
+    driver: local
+  screenshots-data:
+    driver: local
+  snapshots-data:
+    driver: local
+  chrome-profile:
+    driver: local
+  redis-data:
+    driver: local
+  grafana-data:
+    driver: local

@@ -527,6 +527,317 @@ rm -rf ~/.codebuddy/skills/browserskill-pro
 echo "🗑️ BrowserSkill Pro 已卸载"
 ```
 
+#### Docker 容器化部署（跨平台）
+
+如果你希望在 **Docker 容器**中运行 BrowserSkill Pro（适用于 CI/CD、隔离环境、或统一部署），我们提供了完整的 Docker 支持。
+
+**前置条件:**
+
+- Docker Engine 20.10+ （[安装指南](https://docs.docker.com/get-docker/)）
+- Docker Compose V2+ （用于编排多容器环境）
+
+**验证 Docker 环境:**
+
+```bash
+docker --version        # 应显示 Docker 版本
+docker compose version   # 应显示 Compose 版本
+```
+
+---
+
+**方式一：单容器快速启动（推荐入门使用）**
+
+构建并运行 BrowserSkill Pro 容器：
+
+```bash
+# 1. 克隆仓库（如果尚未克隆）
+git clone https://github.com/916938/browserskill-pro.git
+cd browserskill-pro
+
+# 2. 构建 Docker 镜像
+docker build -t browserskill-pro:latest .
+
+# 3. 运行容器（交互模式，查看帮助信息）
+docker run --rm -it browserskill-pro:latest
+
+# 4. 运行 doctor.py 自检（需要连接到宿主机上的 bsk daemon）
+docker run --rm \
+  --network host \                    # 使用宿主机网络访问本地 daemon
+  -v ~/.bsk:/app/.bsk:ro \           # 挂载配置文件（只读）
+  -v $(pwd)/screenshots:/app/data/screenshots \  # 持久化截图目录
+  browserskill-pro:latest python3 skill/scripts/doctor.py --wait-connected 20
+
+# 5. 执行 snapshot 操作示例
+docker run --rm \
+  --network host \
+  browserskill-pro:latest python3 skill/scripts/snapshot.py --session demo --auto
+```
+
+**常用 Docker 运行参数：**
+
+| 参数 | 说明 | 示例 |
+|------|------|------|
+| `--network host` | 使用宿主机网络（访问本地 daemon） | 必需 |
+| `-v` | 挂载卷（数据持久化或配置共享） | `-v ./data:/app/data` |
+| `-e` | 设置环境变量 | `-e LOG_LEVEL=DEBUG` |
+| `-p` | 端口映射 | `-p 52801:52801` |
+| `--rm` | 退出后自动删除容器 | 推荐用于测试 |
+| `-d` | 后台运行（detached mode） | 生产环境推荐 |
+| `-it` | 交互式终端（调试用） | 开发时推荐 |
+
+---
+
+**方式二：Docker Compose 编排（完整生产环境）**
+
+适用于需要 **daemon + Chrome + Redis + 监控** 的完整部署场景。
+
+**快速开始（基础版）：**
+
+```bash
+# 启动所有服务（daemon + skill + redis + chrome）
+docker compose up -d
+
+# 查看服务状态
+docker compose ps
+
+# 查看 logs
+docker compose logs -f browserskill-pro
+
+# 停止所有服务
+docker compose down
+```
+
+**架构概览:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Docker Network (172.28.0.0/16)            │
+│                                                             │
+│  ┌──────────────┐    ┌─────────────────┐    ┌──────────┐   │
+│  │ bsk-daemon   │◄──►│browserskill-pro │◄──►│  chrome  │   │
+│  │ (WebSocket)  │    │ (Skill + Helpers)│    │(Browser) │   │
+│  │ :52800       │    │                 │    │ :9222    │   │
+│  └──────┬───────┘    └────────┬────────┘    └──────────┘   │
+│         │                     │                              │
+│         ▼                     ▼                              │
+│  ┌──────────┐          ┌─────────────┐                      │
+│  │   redis  │          │ monitoring  │ (可选, Grafana)     │
+│  │ :6379    │          │ :3000       │                      │
+│  └──────────┘          └─────────────┘                      │
+│                                                             │
+│  Volumes:                                                    │
+│  ├── bsk-data         (daemon 持久化数据)                    │
+│  ├── screenshots-data (截图输出)                             │
+│  ├── snapshots-data   (快照缓存)                             │
+│  ├── chrome-profile    (浏览器用户数据)                       │
+│  └── grafana-data      (监控数据)                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**高级用法:**
+
+```bash
+# 仅启动核心服务（不含监控）
+docker compose up -d bsk-daemon browserskill-pro redis chrome-browser
+
+# 启动开发环境（源代码热挂载）
+docker compose -f docker-compose.dev.yml up --build -d
+
+# 进入开发容器进行调试
+docker compose -f docker-compose.dev.yml exec browserskill-pro-dev bash
+
+# 在开发容器内运行测试
+docker compose -f docker-compose.dev.yml exec browserskill-pro-dev \
+  python3 -m unittest discover -s tests -v
+
+# 启动带监控的完整环境
+docker compose --profile monitoring up -d
+
+# 访问 Grafana 仪表板
+# 打开 http://localhost:3000 (默认账号: admin/admin)
+```
+
+**自定义配置:**
+
+创建 `.env` 文件来自定义部署：
+
+```bash
+# .env 文件（放在 docker-compose.yml 同级目录）
+
+# Daemon 配置
+BSK_AUTH_TOKEN=your-secure-token-here
+BSK_MAX_SESSIONS=20
+BSK_IDLE_TIMEOUT=600
+
+# Redis 配置（可选，如需外部 Redis）
+REDIS_URL=redis://external-redis-host:6379/0
+
+# Chrome 配置
+CHROME_MODE=headed              # 或 headless（无头模式）
+
+# 日志级别
+LOG_LEVEL=INFO                  # DEBUG, INFO, WARN, ERROR
+
+# 资源限制
+DOCKER_CPUS_LIMIT=2.0
+DOCKER_MEMORY_LIMIT=4G
+```
+
+---
+
+**方式三：CI/CD 集成（自动化测试场景）**
+
+在 GitHub Actions / GitLab CI / Jenkins 中使用 Docker 进行测试:
+
+**GitHub Actions 示例 (.github/workflows/docker-test.yml):**
+
+```yaml
+name: Docker Integration Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      # 启动 BSK daemon 测试服务
+      bsk-daemon:
+        image: browserskill/bsk-daemon:latest
+        ports:
+          - 52800:52800
+        options: >-
+          --health-cmd "curl -f http://localhost:52801/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Build Docker image
+        run: docker build -t browserskill-pro:test .
+      
+      - name: Run unit tests in container
+        run: |
+          docker run --rm \
+            --network host \
+            browserskill-pro:test \
+            python3 -m unittest discover -s tests -v
+      
+      - name: Run doctor.py health check
+        run: |
+          docker run --rm \
+            --network host \
+            browserskill-pro:test \
+            python3 skill/scripts/doctor.py --json
+      
+      - name: Test snapshot functionality
+        run: |
+          docker run --rm \
+            --network host \
+            -v ${{ github.workspace }}/test-output:/app/data/screenshots \
+            browserskill-pro:test \
+            python3 skill/scripts/snapshot.py --session test-session --auto || true
+```
+
+---
+
+**Docker 镜像管理:**
+
+```bash
+# 构建镜像（多平台支持）
+docker buildx build --platform linux/amd64,linux/arm64 -t browserskill-pro:latest .
+
+# 标记并推送到镜像仓库（如 Docker Hub、GitHub Container Registry）
+docker tag browserskill-pro:latest ghcr.io/916938/browserskill-pro:v1.1.0
+docker push ghcr.io/916938/browserskill-pro:v1.1.0
+
+# 查看镜像大小和层级
+docker history browserskill-pro:latest
+
+# 清理未使用的镜像
+docker image prune -f
+
+# 导出/导入镜像（离线环境）
+docker save -o browserskill-pro.tar browserskill-pro:latest
+docker load -i browserskill-pro.tar
+```
+
+---
+
+**性能优化建议:**
+
+1. **减小镜像体积:**
+   ```dockerfile
+   # 使用多阶段构建（已实现在 Dockerfile 中）
+   # 最终镜像仅包含运行时依赖
+   ```
+
+2. **利用 Docker 缓存层:**
+   ```
+   # 将不常变化的 COPY 指令放在前面（已优化 .dockerignore）
+   ```
+
+3. **生产环境安全加固:**
+   ```yaml
+   # docker-compose.prod.yml 补充配置
+   services:
+     browserskill-pro:
+       # ... 其他配置 ...
+       security_opt:
+         - no-new-privileges:true
+       read_only: true          # 只读根文件系统（需配合 tmpfs）
+       tmpfs:
+         - /tmp:size=100M
+         - /app/data/screenshots,size=1G
+       cap_drop:
+         - ALL
+       cap_add:
+         - NET_BIND_SERVICE      # 仅保留绑定端口权限
+   ```
+
+4. **资源限制（防止资源耗尽）:**
+   ```yaml
+   deploy:
+     resources:
+       limits:
+         cpus: '2.0'
+         memory: 2G
+       reservations:
+         cpus: '0.5'
+         memory: 512M
+   ```
+
+---
+
+**故障排除:**
+
+| 问题 | 可能原因 | 解决方案 |
+|------|---------|----------|
+| 容器无法连接到 daemon | 网络模式错误 | 使用 `--network host` 或确保在相同 Docker 网络中 |
+| 权限被拒绝（Permission denied） | 卷挂载权限问题 | 检查宿主机目录权限，或在 Docker 中调整用户 ID (`user: "1000:1000"`) |
+| 镜像构建失败（网络问题） | Dockerfile 中的网络请求失败 | 检查代理设置，或使用预构建的基础镜像 |
+| Chrome 无法启动 | 缺少共享内存或权限 | 增加 `shm_size: '2gb'` 并添加 `privileged: true` |
+| 容器重启循环 | 健康检查失败 | 检查日志: `docker compose logs <service>` |
+
+**查看详细日志:**
+```bash
+# 容器实时日志
+docker compose logs -f browserskill-pro
+
+# 进入容器调试
+docker compose exec browserskill-pro bash
+
+# 检查容器资源使用
+docker stats browserskill-pro
+```
+
 ### 3. 自检
 
 在发送浏览器动作前，先确认 daemon 和扩展都已就绪：
