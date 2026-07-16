@@ -322,6 +322,211 @@ py -3 "<your-path-to-codebuddy-skills>\browserskill-pro\scripts\doctor.py" --wai
 }
 ```
 
+#### CodeBuddy / WorkBuddy 环境安装（Linux / macOS）
+
+如果你在 **Linux** 或 **macOS** 系统上使用 **CodeBuddy** 或 **WorkBuddy**，可以通过以下步骤从 GitHub 仓库快速安装：
+
+**前提条件检查:**
+
+```bash
+# 检查 Git 是否已安装
+git --version
+
+# 检查 Python3 是否可用
+python3 --version
+
+# 检查 curl/wget（用于下载）
+curl --version || wget --version
+```
+
+如果缺少依赖，请先安装：
+
+```bash
+# Ubuntu / Debian
+sudo apt update && sudo apt install -y git python3 curl
+
+# macOS (使用 Homebrew)
+brew install git python3 curl
+
+# Fedora / RHEL
+sudo dnf install -y git python3 curl
+
+# Arch Linux
+sudo pacman -S git python3 curl
+```
+
+**方法一：Git 克隆 + 手动复制（推荐）**
+
+```bash
+# 1. 克隆仓库到临时目录
+TMPDIR=$(mktemp -d)
+git clone https://github.com/916938/browserskill-pro.git "$TMPDIR/browserskill-pro"
+
+# 2. 确定目标 skills 目录（根据你的 Agent 环境）
+# CodeBuddy:
+TARGET_PATH="$HOME/.codebuddy/skills/browserskill-pro"
+# 或 WorkBuddy:
+# TARGET_PATH="$HOME/.workbuddy/skills/browserskill-pro"
+# 或 Codex:
+# TARGET_PATH="$HOME/.codex/skills/browserskill-pro"
+
+# 3. 创建目录并复制文件
+mkdir -p "$(dirname "$TARGET_PATH")"
+cp -r "$TMPDIR/browserskill-pro/skill/." "$TARGET_PATH"
+
+# 4. 清理临时目录
+rm -rf "$TMPDIR"
+
+# 5. 验证安装
+echo "✅ BrowserSkill Pro 已安装到: $TARGET_PATH"
+ls -la "$TARGET_PATH"
+```
+
+**方法二：Bash 一键脚本（自动化）**
+
+创建或下载 `install.sh` 脚本：
+
+```bash
+# 方式 A：从 GitHub Raw 直接执行
+curl -fsSL https://raw.githubusercontent.com/916938/browserskill-pro/main/install.sh | bash
+
+# 方式 B：先下载再执行（推荐，可审查内容）
+curl -fsSL https://raw.githubusercontent.com/916938/browserskill-pro/main/install.sh -o install.sh
+chmod +x install.sh
+./install.sh --branch main
+
+# 指定自定义路径：
+./install.sh --target-path "$HOME/.my-agent/skills/browserskill-pro"
+
+# 强制覆盖已有安装：
+./install.sh --force
+```
+
+**方法三：手动下载 ZIP 文件**
+
+1. 访问 https://github.com/916938/browserskill-pro
+2. 点击绿色的 **"Code"** 按钮 → **"Download ZIP"**
+3. 解压到临时目录：
+
+```bash
+# 解压（假设下载到 ~/Downloads）
+cd ~/Downloads
+unzip browserskill-pro-main.zip -d /tmp/bsk-install
+
+# 设置变量并复制
+ZIP_EXTRACT="/tmp/bsk-install/browserskill-pro-main"
+TARGET="$HOME/.codebuddy/skills/browserskill-pro"
+
+mkdir -p "$(dirname "$TARGET")"
+cp -r "$ZIP_EXTRACT/skill/." "$TARGET"
+
+# 验证
+test -f "$TARGET/SKILL.md" && echo "✅ 安装成功！" || echo "❌ 安装失败"
+```
+
+#### 多环境支持（Linux/macOS）
+
+脚本会自动检测常见的 Agent skills 目录：
+
+| Agent | 默认路径 |
+|-------|---------|
+| CodeBuddy | `~/.codebuddy/skills/browserskill-pro` |
+| WorkBuddy | `~/.workbuddy/skills/browserskill-pro` |
+| Codex | `~/.codex/skills/browserskill-pro` |
+| Custom | 使用 `--target-path` 参数指定 |
+
+**自动检测示例:**
+
+```bash
+# 如果 ~/.codebuddy/skills 存在，自动安装到该位置
+./install.sh
+
+# 如果多个环境都存在，优先级：codebuddy > workbuddy > codex
+# 可通过环境变量覆盖：
+CODEBUDDY_SKILLS_DIR=/custom/path ./install.sh
+```
+
+#### 验证安装（Linux/macOS CodeBuddy / WorkBuddy）
+
+安装完成后，在终端中运行自检：
+
+```bash
+# 替换 <your-path> 为实际安装路径
+python3 "<your-path-to-skills>/browserskill-pro/scripts/doctor.py" --wait-connected 20
+```
+
+或者在 **CodeBuddy / WorkBuddy** 对话框中测试：
+
+```text
+使用 $browserskill-pro 帮我查看当前浏览器的状态
+```
+
+**预期输出示例:**
+```json
+{
+  "ready": true,
+  "reason": "All checks passed",
+  "checks": [
+    {"name": "daemon_running", "status": "passed"},
+    {"name": "port_52800_listening", "status": "passed"},
+    {"name": "extension_connected", "status": "passed"}
+  ]
+}
+```
+
+**常用命令速查（Linux/macOS）：**
+
+```bash
+# 环境自检
+python3 "~/.codebuddy/skills/browserskill-pro/scripts/doctor.py" --wait-connected 20
+
+# 页面快照（精简模式）
+python3 "~/.codebuddy/skills/browserskill-pro/scripts/snapshot.py" --session demo --auto
+
+# 页面快照（完整模式写入文件）
+python3 "~/.codebuddy/skills/browserskill-pro/scripts/snapshot.py" --session demo --mode file
+
+# 截图
+python3 "~/.codebuddy/skills/browserskill-pro/scripts/screenshot.py" --session demo
+
+# 等待页面加载完成
+python3 "~/.codebuddy/skills/browserskill-pro/scripts/wait_for.py" \
+  --session demo --url-contains "example.com" --timeout 10
+
+# 运行单元测试
+python3 -m unittest discover -s ~/.codebuddy/skills/browserskill-pro/../tests -v
+```
+
+**权限问题排查:**
+
+如果在 Linux 上遇到权限错误：
+
+```bash
+# 确保 scripts 有执行权限（可选，Python 不需要但保持一致性）
+chmod +x ~/.codebuddy/skills/browserskill-pro/scripts/*.sh
+chmod +x ~/.codebuddy/skills/browserskill-pro/scripts/*.py
+
+# 如果 doctor.py 无法访问浏览器 socket：
+# 检查当前用户是否在正确的组中（通常不需要特殊权限）
+id  # 显示当前用户和组
+
+# 如果遇到 Python 模块导入错误：
+# 确保使用系统 Python3（不使用虚拟环境中的版本）
+which python3
+python3 --version  # 推荐 Python 3.8+
+```
+
+**卸载说明（Linux/macOS）：**
+
+```bash
+# 直接删除安装目录即可
+rm -rf ~/.codebuddy/skills/browserskill-pro
+
+# 或者如果是其他路径：
+# rm -rf <your-installation-path>
+echo "🗑️ BrowserSkill Pro 已卸载"
+```
+
 ### 3. 自检
 
 在发送浏览器动作前，先确认 daemon 和扩展都已就绪：
