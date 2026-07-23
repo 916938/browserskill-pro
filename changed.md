@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### Synced from BrowserSkill upstream (2026-07-23)
+
+- **New helpers for `bsk record` and `bsk network`** (upstream CLI 0.1.8):
+  - `record.sh` / `record.ps1` wrap `bsk record start|stop`. `start` opens the Agent Window and blocks until the user clicks Finish, writing `trace.json`. Optional `--browser`, `--url`, `--purpose`, `--output` flags mirror the upstream CLI.
+  - `network.sh` / `network.ps1` wrap `bsk network`. Cursor-paginated (`--since` → `next_since`), with `--limit`, `--max-text-chars`, and `--tab-id` passthrough. Useful for XHR / fetch traffic inspection without falling back to `evaluate + fetch` reflection.
+- **`replay.py`** — new script to execute a `bsk record` trace against an active session. This closes the gap upstream leaves open by design (there is no `bsk replay`):
+  - Takes a fresh snapshot before every interactive step and matches each step's semantic `TargetDescriptor` (role + name) to an `@eN` ref using a scored matcher.
+  - **Red-line hard stops**: `redacted:true` `fill` steps refuse to execute (never types password placeholders); ambiguous or no-match targets error out instead of grabbing a same-role sibling; unknown ops halt replay.
+  - `--dry-run` prints the resolved bsk commands without executing them (still calls `bsk snapshot` for target resolution).
+  - `--from-step N` resumes after a failure.
+  - `click` steps with `effect.navigated_to` automatically trigger `bsk wait-for-navigation` before the next step.
+- **`BSK_DEFAULT_SESSION` env-var fallback** in `invoke.sh` / `invoke.ps1`: when `--session` / `-Session` is omitted, the helpers pick up `$BSK_DEFAULT_SESSION` (validated with the same character-class rule as an explicit flag). Explicit CLI arg still wins. Lets a long-lived session be pinned once per shell instead of threaded through every call.
+- **`--dry-run` passthrough** in the `bsk invoke` branch of both helpers: `--dry-run` now appends `--dry-run` to the built `bsk invoke` command and actually runs it, so the daemon can validate action name, JSON schema, and session existence. The command line is printed to stderr so callers still see what would run, and stdout stays clean for piping. The legacy typed-subcommand fallback branch keeps the old echo-and-return behavior since those subcommands don't support `--dry-run`.
+- **SKILL.md**: documented the three new helper groups. "Recording and replay" section covers `record.sh` / `replay.py`, the semantic target → `@eN` matching contract, the redacted-fill hard stop, and `--dry-run` / `--from-step` usage. "Network inspection" section covers the cursor-paginated `network.sh` / `network.ps1`. Two new lines added to the "Additional BrowserSkill capabilities" list so agents discover `bsk record` and `bsk network` at scan time.
+
 ### Synced from BrowserSkill upstream (2026-07-17)
 
 - **SKILL.md**: Added comprehensive **"Dual-mode execution"** documentation section (8 subsections):
