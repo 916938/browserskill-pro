@@ -31,6 +31,13 @@ param(
 # --action accepts a bare tool name (fill, tab_list) or a qualified method
 # (tool.fill). Session-stopping actions are guarded behind -Force.
 
+# Session fallback: honor $env:BSK_DEFAULT_SESSION when -Session was not given.
+# Explicit -Session always wins so agents can override per-call. Keep in sync
+# with invoke.sh.
+if (-not $Session -and $env:BSK_DEFAULT_SESSION) {
+    $Session = $env:BSK_DEFAULT_SESSION
+}
+
 # Every spelling that resolves to a session-stopping method (bsk invoke maps
 # session_stop -> session.stop, session_stop_all -> session.stop_all). Keep this
 # list identical to the one in invoke.sh. `close_session` is the deprecated
@@ -118,7 +125,12 @@ function Execute-WithInvoke {
     $bskArgs += "--json"
 
     if ($DryRun) {
-        $bskArgs -join " "
+        # Forward --dry-run to `bsk invoke` so the daemon can validate the action
+        # name, JSON schema, and session existence without executing the request.
+        # Prints the command to stderr first so callers still see what would run.
+        $bskArgs += "--dry-run"
+        [Console]::Error.WriteLine($bskArgs -join " ")
+        & $bskArgs[0] $bskArgs[1..($bskArgs.Length - 1)]
         return
     }
 

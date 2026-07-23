@@ -95,6 +95,8 @@ Additional BrowserSkill capabilities:
 - `bsk get-html --session <id>` - Get page HTML
 - `bsk wait-for-navigation --session <id>` - Wait for navigation to complete
 - `bsk wait-ms <duration>` - Wait for specified duration (no session needed)
+- `bsk record start|stop --session <id>` - Record a session to trace.json for later replay (see `record.sh` / `record.ps1` helpers)
+- `bsk network --session <id>` - Read buffered network responses / failures for a tab (cursor-paginated; see `network.sh` / `network.ps1`)
 
 ## Use helpers
 
@@ -346,6 +348,35 @@ Use [screenshot.py](scripts/screenshot.py) for cross-platform screenshots.
 For large or unknown pages, use [snapshot.py](scripts/snapshot.py) with `--auto` first. It returns compact output for small pages and writes large snapshots to a UTF-8 JSON file.
 Use [doctor.py](scripts/doctor.py) for no-action readiness checks: daemon status, extension connection.
 Run Python helpers with `py -3` (or `py`) on Windows and `python3` on POSIX. Do not assume `python3` is the Windows launcher.
+
+### Recording and replay
+
+Capture the user's own actions in the Agent Window and replay them later. Recording is an interactive user session; replay is agent-driven.
+
+- **[record.sh](scripts/record.sh) / [record.ps1](scripts/record.ps1)** — wraps `bsk record start|stop`. `start` opens the Agent Window, blocks until the user clicks Finish, and writes `trace.json`. Use `--purpose "..."` to attach a goal string (metadata only; does not change what is captured). `stop` is a terminal fallback when the browser panel is unavailable.
+- **[replay.py](scripts/replay.py)** — executes a `trace.json` against an active session. Takes a fresh snapshot before every interactive step and matches each step's semantic target (role + name) to an `@eN` ref. **Always try `--dry-run` first** — it prints the resolved commands without touching the page.
+
+```bash
+# Record
+scripts/record.sh start --purpose "publish an article" --output ./flow.json
+
+# Replay against a new session
+SID=$(bsk session start)
+python3 scripts/replay.py ./flow.json --session "$SID" --dry-run  # inspect plan
+python3 scripts/replay.py ./flow.json --session "$SID"            # execute
+bsk session stop "$SID"
+```
+
+Replay hard-stops on: redacted `fill` steps (passwords), ambiguous or missing target matches, unknown ops. Resume after a failure with `--from-step N`. Do **not** record on banking/SSO/password-manager pages — passwords are redacted, but traces may still contain sensitive text.
+
+### Network inspection
+
+**[network.sh](scripts/network.sh) / [network.ps1](scripts/network.ps1)** — wraps `bsk network`, returning buffered network responses/failures for a tab. Cursor-paginated: pass the previous call's `next_since` as `--since` to fetch only new entries. Prefer this over `evaluate` + `fetch` reflection when debugging XHR / fetch traffic.
+
+```bash
+scripts/network.sh --session "$SID" --limit 20 --json
+# Next call: --since <cursor_from_previous_response>
+```
 
 ## Minimal workflows
 

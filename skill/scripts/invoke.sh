@@ -103,6 +103,13 @@ done
 
 [[ -n "$action" ]] || { echo "--action is required" >&2; exit 2; }
 [[ "$action" =~ ^[A-Za-z0-9_.-]+$ ]] || { echo "Invalid action name" >&2; exit 2; }
+
+# Session fallback: honor $BSK_DEFAULT_SESSION when --session was not given.
+# Explicit --session always wins so agents can override per-call.
+if [[ -z "$session" && -n "${BSK_DEFAULT_SESSION:-}" ]]; then
+  session="$BSK_DEFAULT_SESSION"
+fi
+
 [[ -z "$session" || "$session" =~ ^[A-Za-z0-9_.-]+$ ]] || {
   echo "Session names may contain letters, digits, dot, underscore, and hyphen." >&2
   exit 2
@@ -209,8 +216,13 @@ execute_with_invoke() {
   bsk_args+=("--timeout-ms" "$((timeout * 1000))" "--json")
 
   if [[ "$dry_run" == true ]]; then
-    printf '%s\n' "${bsk_args[*]}"
-    return 0
+    # Forward --dry-run to `bsk invoke` so the daemon can validate the action
+    # name, JSON schema, and session existence without executing the request.
+    # Prints the command first so callers still see what would run.
+    bsk_args+=("--dry-run")
+    printf '%s\n' "${bsk_args[*]}" >&2
+    "${bsk_args[@]}"
+    return $?
   fi
 
   if [[ -n "$output_path" ]]; then
