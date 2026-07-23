@@ -369,6 +369,8 @@ bsk session stop "$SID"
 
 Replay hard-stops on: redacted `fill` steps (passwords), ambiguous or missing target matches, unknown ops. Resume after a failure with `--from-step N`. Do **not** record on banking/SSO/password-manager pages — passwords are redacted, but traces may still contain sensitive text.
 
+Full end-to-end walkthrough (record once, replay with different values): [examples/record_and_replay.md](examples/record_and_replay.md).
+
 ### Network inspection
 
 **[network.sh](scripts/network.sh) / [network.ps1](scripts/network.ps1)** — wraps `bsk network`, returning buffered network responses/failures for a tab. Cursor-paginated: pass the previous call's `next_since` as `--since` to fetch only new entries. Prefer this over `evaluate` + `fetch` reflection when debugging XHR / fetch traffic.

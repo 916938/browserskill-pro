@@ -12,8 +12,8 @@ BrowserSkill Pro is an agent skill that wraps the `bsk` CLI with Python/PowerShe
 | `skill/references/protocol.md` | Command parameters, exit codes, privacy constraints. |
 | `skill/references/operations.md` | Installation, status checks, failure recovery. |
 | `skill/references/how-it-works.md` | Architecture and design rationale (human-only, high context cost). |
-| `skill/examples/` | End-to-end workflow examples (form fill, scroll, popup, network). |
-| `skill/scripts/` | Python and PowerShell helpers (`doctor.py`, `snapshot.py`, `screenshot.py`, `wait_for.py`, `invoke.ps1`, `invoke.sh`). |
+| `skill/examples/` | End-to-end workflow examples (form fill, scroll, popup, network, record + replay). |
+| `skill/scripts/` | Python and shell helpers (`doctor.py`, `snapshot.py`, `screenshot.py`, `wait_for.py`, `invoke.ps1`, `invoke.sh`, `record.ps1`, `record.sh`, `network.ps1`, `network.sh`, `replay.py`). |
 | `skill/agents/openai.yaml` | Optional OpenAI/Codex UI metadata. |
 | `tests/` | Unit tests for the Python helpers. |
 
