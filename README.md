@@ -8,7 +8,7 @@
 
 [![Agent Skill](https://img.shields.io/badge/Agent-Skill-black.svg)](skill/SKILL.md)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg)](#quick-start)
-[![Version](https://img.shields.io/badge/Version-v1.0.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-v1.1.0-green.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 </div>
@@ -115,6 +115,8 @@ Local AI Agent (CodeBuddy / Claude Code / WorkBuddy / Codex)
 | **Cross-Platform Support** | Native helpers for Windows (PowerShell), Linux/macOS (Bash) |
 | **Smart Snapshot Control** | Auto-strategy, compact UI summary, or full snapshot to file |
 | **Doctor Self-Check** | Checks daemon, port, and extension connection; outputs JSON reason |
+| **Session Health Monitoring** | `health_checker.py` assesses active sessions (connectivity, version skew, latency, zombie tabs) with `healthy`/`degraded`/`unhealthy` status, metrics, and optional auto-recovery |
+| **Graceful Degradation Chain** | `fallback_chain.py` executes actions through passthrough → legacy → simplified-args levels with per-attempt decision logging and emergency cleanup |
 | **Smart Waiting** | Polls by URL, title, or accessible text without repeating original click |
 | **Popup Diagnostics** | Checks SPA, background tabs, and popup blocking when page doesn't change |
 | **Privacy Minimization** | Limits reading of cookies, auth headers, browser storage, and private content |
@@ -801,19 +803,19 @@ python3 ./skill/scripts/doctor.py --wait-connected 20
 
 ## Roadmap
 
-### Current Version: v1.0.0
+### Current Version: v1.1.0 (MVR)
 
-See [CHANGELOG.md](CHANGELOG.md) for details.
+Released 2026-07-17 — delivered the P0 reliability infrastructure: error classification (`error_codes.py`), structured JSON errors (`error_formatter.py`), input validation (`validator.py`), smart retry (`retry_handler.py`), and timeout management (`timeout_manager.py`). 238 unit tests passing. Skill docs are aligned with bsk CLI 0.2.2.
 
-### Next Version: v1.1.0 (Planning)
+### Next: complete the v1.1.0 roadmap
 
-View the complete roadmap with 23 planned features and priorities: [docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md)
+View the complete roadmap with planned features and priorities: [docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md)
 
-**Key Focus Areas:**
+**Remaining key areas:**
 
 | Priority | Feature Area | Examples |
 |----------|-------------|----------|
-| **P0** | Error Recovery | Retry mechanisms, checkpoint resume, graceful degradation |
+| **P0** | Error Recovery | ✅ Complete: smart retry, structured errors, timeout management, session health monitoring (`health_checker.py`), graceful fallback chain (`fallback_chain.py`) |
 | **P1** | Performance Optimization | Concurrent session management, caching strategies, resource pooling |
 | **P2** | Enhanced Actions | Drag-and-drop upload, file download, keyboard shortcut recording |
 | **P3** | Observability | Structured logging, Prometheus metrics, distributed tracing |

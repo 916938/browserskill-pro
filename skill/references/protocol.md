@@ -156,8 +156,10 @@ The **Action** column is the name passed to `invoke.sh --action` / `invoke.ps1 -
 | `navigate` | `bsk navigate <url>` | `url`, `wait_until`, `timeout` | Navigate the selected tab. |
 | `tab_create` | `bsk tab create` | `url`, `active`, `index` | Create a new tab in the Agent Window. |
 | `tab_list` | `bsk tab list` | `scope` | List tabs in scope (`user`/`agent`/`all`). No server-side URL filter; match URLs client-side. |
-| `snapshot` | `bsk snapshot` | none | Read URL, title, accessibility tree, and `@e` refs. |
+| `observe` | `bsk observe` | `max_depth`, `max_tokens`, `probe_hover` (0.2.2+) | Read a semantic VOM view: URL, title, text, controls, hover surfaces, and `@e` refs. Preferred first observation. |
+| `snapshot` | `bsk snapshot` | none | Read a stricter static accessibility tree with `@e` refs when the semantic view is not enough. |
 | `click` | `bsk click <ref>` | `ref`/`selector` | Click an `@e` ref or CSS selector. |
+| `hover` | `bsk hover <ref>` | `ref`/`selector`, `modifiers`, `settle` | Hover a ref/selector to reveal menus; observe again before acting on revealed items. |
 | `fill` | `bsk fill <ref>` | `ref`/`selector`, `value` | Replace plain text in inputs, textareas, or contenteditable editors; rich-text markup is not preserved. |
 | `evaluate` | `bsk evaluate <code>` | `expression` | Read attributes or perform unsupported page logic. |
 | `screenshot` | `bsk screenshot` | `ref`, `format` | Capture the full visible tab, or use `ref` `@eN` to crop to one element. |
@@ -183,6 +185,35 @@ The **Action** column is the name passed to `invoke.sh --action` / `invoke.ps1 -
 | `get-html` | `bsk get-html` | Get page HTML |
 | `wait-for-navigation` | `bsk wait-for-navigation` | Wait for navigation to complete |
 | `wait-ms` | `bsk wait-ms <duration>` | Wait for specified duration |
+| `console` | `bsk console` | Read buffered console/log/exception messages for a tab (read-only) |
+| `upload` | `bsk upload <ref> --file <path>` | Stage a local file and attach it to the page (0.2.2+); `--mode input\|drop`; repeat `--file` for multi-file inputs |
+| `download` | `bsk download <ref> --out <path>` | Capture a browser download (0.2.2+); default-refuses overwrite, pass `--overwrite` to replace |
+| `emulate` | `bsk emulate --device <preset>` | Emulate a mobile device (viewport, UA, touch) on one tab; `--off` restores; new tabs do not inherit |
+| `window-resize` | `bsk window resize --width <w> --height <h>` | Resize the session's Agent Window (100..=7680 CSS px) |
+| `templates` | `bsk templates list\|get\|create\|update\|delete\|apply` | Profile Template metadata CRUD + controlled apply (never a credential backup mechanism) |
+| `logs` | `bsk logs` | Print (and optionally follow) the daemon log file |
+| `update` | `bsk update` | Check for and install bsk CLI updates |
+| `completion` | `bsk completion <shell>` | Print tab-completion for bash, zsh, fish, or powershell |
+
+`bsk session start` also accepts `--no-focus` (open the Agent Window without stealing focus) and `--width`/`--height` (initial Agent Window size, both required together).
+
+## File transfer (bsk 0.2.2+)
+
+`upload` and `download` stage files through the daemon; the agent never touches browser-internal paths. Treat upload as disclosure to the website, download as accepting website-controlled bytes.
+
+Upload has two independent mechanisms — choose explicitly, never rely on automatic fallback:
+
+- **Default (input mode):** for upload buttons, file-input labels, or "upload from computer" actions. The command clicks the target and intercepts the native file chooser.
+- **`--mode drop`:** for reliably identified attachment-receiving areas — an explicit drop zone, chat composer, email editor, or form attachment area. Do not target page whitespace or ambiguous containers.
+
+Decision sequence when uploading:
+
+1. Try input mode (the default).
+2. If it returns `reason=file_input_not_activated` with `effect_state=none`, re-observe. When a reliable attachment target exists, try `--mode drop` once against that target.
+3. Otherwise fall back to `request-help`.
+4. Never switch mechanisms or repeat when `effect_state` is `unknown` or `committed` — the browser may already have applied the file.
+
+A successful drop means Chrome dispatched the native file-drop event; it does not prove the site accepted the attachment. Observe the page once after the command.
 
 ## Privacy constraints
 
@@ -199,9 +230,10 @@ The **Action** column is the name passed to `invoke.sh --action` / `invoke.ps1 -
 
 ## Interaction rules
 
-- Prefer snapshot refs over CSS selectors.
+- Prefer fresh observation refs over CSS selectors. `bsk observe` is the default reading command; `snapshot` is the stricter static fallback.
 - Snapshot refs such as `@e10` are BrowserSkill references, not DOM attributes. They work with `click` and `fill`, but selectors such as `[data-ref="@e10"]` usually do not exist.
-- Refresh the snapshot after navigation or major DOM changes.
+- Refresh the observation after navigation or major DOM changes.
+- `fill` validates the result before reporting success (bsk 0.2.2+). Follow the returned code instead of blindly repeating: `fill_value_mismatch` — observe the field first, the page may have formatted the value (currency, phone, date); continue if the visible result satisfies the intent. `fill_target_changed` — re-observe and retry once with a fresh ref. `target_not_fillable` — pick the real input field from a fresh observation.
 - Treat `click` and `fill` as synthetic DOM events. Sites requiring `event.isTrusted` may reject them.
 - Treat `fill` as clear-and-replace. Read and concatenate the existing value before filling when appending.
 - Wrap repeated `evaluate` code in an IIFE to avoid top-level `const` or `let` redeclaration:

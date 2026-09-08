@@ -8,7 +8,7 @@
 
 [![Agent Skill](https://img.shields.io/badge/Agent-Skill-black.svg)](skill/SKILL.md)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg)](#快速开始)
-[![Version](https://img.shields.io/badge/Version-v1.0.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-v1.1.0-green.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 </div>

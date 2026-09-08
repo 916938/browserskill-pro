@@ -10,8 +10,14 @@ Control the user's live browser through the bsk CLI.
 **Version compatibility**: This skill package works with **bsk CLI 0.1.0+**. The **`bsk invoke` passthrough command** (available in bsk 0.2.0+) enables the invoke helpers to forward raw JSON without host-side parsing. If `bsk invoke` is unavailable, helpers automatically fall back to direct typed-command mode.
 
 Current recommended versions:
-- **bsk CLI**: 0.1.7
-- **BrowserSkill extension**: 0.1.3
+- **bsk CLI**: 0.2.2
+- **BrowserSkill extension**: 0.2.2 (CLI / Extension / DSH Plugin share one semver since 0.2.2)
+
+Feature availability by CLI version:
+
+- `bsk invoke` passthrough: 0.2.0+
+- `bsk observe` (VOM semantic view), `hover`, `console`, `emulate`, `window resize`, `templates`, `logs`, `update`, `completion`: 0.2.1+
+- `bsk upload` / `bsk download`, `observe --probe-hover`, fill validation errors: 0.2.2+
 
 ## When NOT to use
 
@@ -42,8 +48,10 @@ Current recommended versions:
    ```powershell
    $sessionId = bsk session start --browser <instance-id-or-label>
    ```
-   Run `bsk browsers` to list available instances.
+   Run `bsk browsers` to list available instances. Add `--no-focus` to the same start command when the Agent Window should not interrupt the user's current work.
 3. Use `bsk tab list --scope user` + `bsk tab borrow <tab-id>` for user-owned existing tabs, or `bsk navigate <url>` for task-owned tabs.
+
+**Smart labels are editable aliases, not identity.** The `instance_id` is the stable routing key; a label may be duplicated, missing, or offline. When a label is ambiguous, re-run `bsk browsers` and use the full `instance_id` instead of guessing. Labels are edited in the extension popup and may briefly reconnect the extension — never cache label-to-id mappings across tasks. Do not switch an active session to another instance; stop it and start a new one.
 
 **Session idle timeout is 5 minutes.** Do not rely on idle timeout for cleanup — always call `bsk session stop <id>` explicitly when done, even on error paths. Emergency cleanup: `bsk session stop --all`.
 
@@ -52,7 +60,8 @@ Current recommended versions:
 - Need the user's existing login state or current tab? Use `bsk tab list --scope user` to find the tab, then `bsk tab borrow <tab-id>`, then take a snapshot.
 - Need an isolated tab you can close later? Use `bsk navigate <url>` in the Agent Window.
 - Multiple browsers connected? Run `bsk browsers` to list them, then `bsk session start --browser <instance-id-or-label>` to target a specific one.
-- Page size is unknown? Start with `snapshot.py --auto`.
+- Page state is unknown? Start with `bsk observe --session <id>` — a semantic VOM view with fresh `@e` refs. Use `snapshot.py --auto` only when a stricter static accessibility tree is more useful.
+- Expected control is missing and no `[has-submenu]` / `[hover first: ...]` marker points at a trigger? Try `bsk observe --probe-hover` once (0.2.2+), or hover the trigger with `bsk hover <ref>` and observe again before acting.
 - Need controls only? Use `snapshot.py --mode compact`.
 - Need article text, long static content, or Chinese text extraction? Use `snapshot.py --mode file` and read only the relevant file sections.
 - Sending Chinese, nested JSON, or quote-heavy arguments? Use a UTF-8 args file instead of inline shell quoting.
@@ -71,8 +80,10 @@ The `Action` column is the name you pass to the invoke helpers (`--action` / `-A
 | `navigate` | `bsk navigate <url> --session <id>` | Open a URL in the selected tab. |
 | `tab_create` | `bsk tab create --url <url> --session <id>` | Create a new tab in the Agent Window. |
 | `tab_list` | `bsk tab list --scope <scope> --session <id>` | List tabs in scope; match a URL client-side (there is no server-side URL filter). Use `--scope user` to find user-owned tabs. |
-| `snapshot` | `bsk snapshot --session <id>` | Read URL, title, accessible text, and `@e` refs. |
+| `observe` | `bsk observe --session <id>` | Read a semantic VOM view: URL, title, text, controls, hover surfaces, and `@e` refs. Preferred first observation. |
+| `snapshot` | `bsk snapshot --session <id>` | Read a stricter static accessibility tree with `@e` refs when the semantic view is not enough. |
 | `click` | `bsk click <ref-or-selector> --session <id>` | Click a snapshot ref or selector. |
+| `hover` | `bsk hover <ref-or-selector> --session <id>` | Hover to reveal menus; observe again before clicking the revealed item's own ref. |
 | `fill` | `bsk fill <ref-or-selector> --value <text> --session <id>` | Replace text in an input, textarea, or contenteditable field. |
 | `evaluate` | `bsk evaluate <expression> --session <id>` | Read bounded page state or recover a real link. |
 | `screenshot` | `bsk screenshot --ref <ref> --out <path> --session <id>` | Capture the page or an element. |
@@ -95,8 +106,18 @@ Additional BrowserSkill capabilities:
 - `bsk get-html --session <id>` - Get page HTML
 - `bsk wait-for-navigation --session <id>` - Wait for navigation to complete
 - `bsk wait-ms <duration>` - Wait for specified duration (no session needed)
-- `bsk record start|stop --session <id>` - Record a session to trace.json for later replay (see `record.sh` / `record.ps1` helpers)
+- `bsk record start|stop --session <id>` - Record a session to trace.json for later replay (see `record.sh` / `record.ps1` helpers). There is no `bsk replay` — to redo a flow, read the trace and reuse session/observe/click/fill.
 - `bsk network --session <id>` - Read buffered network responses / failures for a tab (cursor-paginated; see `network.sh` / `network.ps1`)
+- `bsk console --session <id>` - Read buffered console/log/exception messages for a tab (read-only debugging)
+- `bsk upload <ref> --file <path> --session <id>` - Stage a local file and attach it to the page (0.2.2+). Default input mode intercepts the native file chooser; `--mode drop` targets an explicit drop zone. Repeat `--file` for multi-file inputs.
+- `bsk download <ref> --out <path> --session <id>` - Capture a browser download (0.2.2+). Default-refuses to overwrite an existing file; pass `--overwrite` when replacing is intended.
+- `bsk emulate --device <preset> --session <id>` - Emulate a mobile device (viewport, UA, touch) on one tab; presets like `iphone-14`, `pixel-7`; `--off` restores the real environment. New tabs do not inherit emulation.
+- `bsk window resize --width <w> --height <h> --session <id>` - Resize the session's Agent Window (100..=7680 CSS px). `bsk session start` also accepts `--width/--height`.
+- `bsk session start --no-focus` - Open the Agent Window in the background without stealing focus.
+- `bsk templates list|get|create|update|delete|apply` - Manage Profile Templates (metadata CRUD + controlled apply; never an account backup or credential migration mechanism).
+- `bsk logs` - Print (and optionally follow) the daemon log file.
+- `bsk update` - Check for and install bsk CLI updates.
+- `bsk completion <shell>` - Print a tab-completion script for bash, zsh, fish, or powershell.
 
 ## Use helpers
 
@@ -347,6 +368,7 @@ JSON
 Use [screenshot.py](scripts/screenshot.py) for cross-platform screenshots.
 For large or unknown pages, use [snapshot.py](scripts/snapshot.py) with `--auto` first. It returns compact output for small pages and writes large snapshots to a UTF-8 JSON file.
 Use [doctor.py](scripts/doctor.py) for no-action readiness checks: daemon status, extension connection.
+Use [health_checker.py](scripts/health_checker.py) for session-aware diagnostics when an active session misbehaves: `py -3 scripts\health_checker.py --session <id>` reports `healthy` / `degraded` / `unhealthy` with per-issue severity, metrics, and recovery suggestions. Add `--auto` to attempt recoverable fixes.
 Run Python helpers with `py -3` (or `py`) on Windows and `python3` on POSIX. Do not assume `python3` is the Windows launcher.
 
 ### Recording and replay
@@ -421,10 +443,10 @@ User-owned tab workflow: call `bsk tab list --scope user`, find the target tab, 
 
 1. Start a session with `bsk session start` and capture the session ID.
 2. Use `bsk tab list --scope user` + `bsk tab borrow <tab-id>` for a user-owned existing tab, or `bsk navigate <url>` for a task-owned tab.
-3. Take `snapshot.py --auto` for unknown pages, or `snapshot.py --mode compact` when you only need controls.
-4. Use snapshot `@e` refs with `bsk click` and `bsk fill`.
+3. Observe before acting: run `bsk observe --session <id>` for unknown pages. Escalate reading only as needed — `observe` → `observe --probe-hover` (0.2.2+) → `snapshot.py --mode compact` / `--mode file` → `get-html` → `screenshot`. Do not start with raw HTML or screenshots merely to discover ordinary controls.
+4. Use the observation's `@e` refs with `bsk click`, `bsk fill`, `bsk hover`, and `bsk select`. Navigation invalidates refs; large DOM changes may also make them stale — observe again before the next interaction.
 5. After navigation or a click that should change the page, use [wait_for.py](scripts/wait_for.py) or poll URL/title up to three times.
-6. Take a new snapshot after a substantial DOM change; old refs may be stale.
+6. Observe again after a substantial DOM change; old refs may be stale.
 7. Use `bsk tab list` before cleanup. For user-owned tabs, use `bsk tab return <tab-id>` to return them. For task-owned tabs, use `bsk session stop <id>` to close them.
 
 Do not assume `bsk tab borrow` visibly focuses a browser tab. It selects a matching tab for the BrowserSkill session.
@@ -440,6 +462,14 @@ When using `wait_for.py`, the text condition flag is `--text-contains`; `--visib
 3. Use `bsk tab select <tab-id>` to select the destination for the session.
 4. If no tab appeared, tell the user the browser may have blocked a popup or new tab. Ask them to allow popups/new windows for that site, then retry once.
 5. If a result card has nested click targets, inspect its primary `href` with `bsk evaluate` and navigate directly.
+
+## Recover from fill errors
+
+`bsk fill` validates the result before reporting success (bsk 0.2.2+). Follow the returned error code instead of blindly repeating the fill:
+
+- `fill_value_mismatch` — the field does not contain the exact value. Observe the field first: the page may have formatted it (currency, phone, date). Continue if the visible result satisfies the user's intent; otherwise correct the remaining difference. Do not immediately request human help.
+- `fill_target_changed` — the target changed between resolution and execution. Re-observe and retry once with a fresh ref.
+- `target_not_fillable` — the target is not an input, textarea, or contenteditable. Pick the real input field from a fresh observation.
 
 ## Rich-text editors
 
@@ -468,7 +498,7 @@ bsk request-help --session <id> --prompt "Solve the captcha, then click Continue
 | `--target` | Recommended | Snapshot ref (`@e7`) or CSS selector to highlight — repeatable |
 | `--timeout` | No | How long to wait (default `5m`) |
 
-Result `outcome`: `continued` (user confirmed), `cancelled` (user rejected), `timed_out`, or `navigated` (page navigated while waiting — refs are stale, re-snapshot).
+Result `outcome` (bsk 0.2.2+): `continued` (user confirmed and returned control), `completed` (user finished the step), `cancelled` (user rejected — treat as rejection), `timed_out` or `disabled` (treat as blockers, not reasons to retry), or `navigated` (deprecated — never treat navigation alone as a completion signal; refs are stale, re-observe). Resume only after `continued` or `completed`, then take a fresh `bsk observe` before using refs.
 
 ## Preserve user state
 

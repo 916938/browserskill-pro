@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+### v1.1.0 P0 completion: health monitoring + fallback chain (2026-09-08)
+
+- `health_checker.py` (roadmap #3) — session health monitoring: environment checks (daemon reachability, connected browsers, version skew, recent restart, daemon latency) plus session-level checks (liveness, tab-list readability, zombie sessions with zero tabs). Emits a JSON `HealthReport` (`healthy` / `degraded` / `unhealthy`) with per-issue severity/category, `SessionMetrics`, recovery suggestions, and `--auto` recovery for auto-recoverable issues. Probes are injectable for testing; environment-level problems point back to `doctor.py`.
+- `fallback_chain.py` (roadmap #4) — graceful degradation: passthrough (`bsk invoke`) → legacy (typed subcommands) → simplified (optional args stripped) levels with an extensible `LevelSpec` registry, `--fallback enabled|disabled` / `--max-fallback-depth` config, per-attempt decision logging (mode, status, error, duration, next action), error-category escalation rules (TRANSIENT/SYSTEM/param errors fall through; other PERMANENT/USER_ERROR stop), and an emergency-cleanup hook on SYSTEM-class exhaustion.
+- `tests/test_health_checker.py` (17 cases) and `tests/test_fallback_chain.py` (22 cases).
+- Docs: `operations.md` gained a "Session health checks" section; `SKILL.md` helper guidance mentions `health_checker.py`; README features and roadmap status updated.
+
+### Aligned with bsk CLI 0.2.2 (2026-09-08)
+
+- **SKILL.md**: recommended versions updated from bsk CLI 0.1.7 / extension 0.1.3 to **0.2.2** (CLI / Extension / DSH Plugin share one semver since 0.2.2), with a feature-availability-by-CLI-version table (0.2.0 invoke / 0.2.1 observe+hover+emulate+templates / 0.2.2 upload+download+probe-hover+fill validation).
+- **SKILL.md**: `bsk observe` (VOM semantic view) added to the quick action map as the preferred first observation; reading escalation chain `observe → --probe-hover → snapshot → get-html → screenshot` documented in the decision tree and task workflow; `hover` action documented; new "Recover from fill errors" section (`fill_value_mismatch`, `fill_target_changed`, `target_not_fillable`).
+- **SKILL.md**: `request-help` outcome updated to 0.2.2 semantics (`continued`, `completed`, `cancelled`, `timed_out`, `disabled`; `navigated` deprecated). Smart label semantics documented: `instance_id` is the stable routing key, labels are editable aliases that may be duplicated and must not be cached across tasks. `bsk session start --no-focus` documented.
+- **SKILL.md / protocol.md**: new commands documented — `console`, `upload` (`--mode input|drop`, repeatable `--file`), `download` (`--overwrite`), `emulate --device` (new tabs do not inherit; `--off` restores), `window resize`, `templates` (metadata CRUD, never a credential backup), `logs`, `update`, `completion`.
+- **protocol.md**: new "File transfer (bsk 0.2.2+)" section with the upload decision sequence (input mode → `file_input_not_activated` + `effect_state=none` → one `--mode drop` attempt → `request-help`; never repeat when `effect_state` is `unknown`/`committed`).
+- **operations.md**: runtime dependency table, CLI verification comment, and version-matching section updated to 0.2.2.
+- **README.md / README_ZH.md**: version badge → v1.1.0; roadmap section updated to reflect the v1.1.0 MVR shipped state and remaining P0 items.
+
+### v1.1.0 MVR infrastructure modules (2026-07-17)
+
+- `error_codes.py` — error classification (TRANSIENT / PERMANENT / SYSTEM / USER_ERROR), 14 predefined codes with retryability metadata.
+- `error_formatter.py` — JSON error/success envelopes with UUID tracking, timestamps, suggestions, and recovery actions.
+- `validator.py` — fail-fast input validation: XSS/SQL injection patterns, field validators (session_id, URL, selectors, filenames), path traversal protection.
+- `retry_handler.py` — exponential backoff with ±20% jitter, transient-only retries, configurable strategies, decorator support.
+- `timeout_manager.py` — 4-layer timeout architecture (10s/30s/300s/600s), SIGINT/SIGTERM graceful cancellation, cooperative cancellation tokens.
+- 7 new test modules (+217 tests; 238 total passing at release).
+
 ### Synced from BrowserSkill upstream (2026-07-23)
 
 - **New helpers for `bsk record` and `bsk network`** (upstream CLI 0.1.8):

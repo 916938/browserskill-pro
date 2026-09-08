@@ -41,6 +41,30 @@ Prerequisite links:
 
 - BrowserSkill official repository: `https://github.com/tencent/browserskill`
 
+## Session health checks
+
+When an active session misbehaves (operations time out, tabs vanish, commands feel slow), run the session-aware health check before restarting anything:
+
+```powershell
+py -3 scripts\health_checker.py --session <id>
+```
+
+```bash
+python3 scripts/health_checker.py --session <id>
+```
+
+The report is always JSON with a top-level `status`:
+
+| Status | Meaning |
+|---|---|
+| `healthy` | All checks passed; keep working. |
+| `degraded` | Usable but impaired (high daemon latency, zombie session with zero tabs, recent daemon restart). |
+| `unhealthy` | Do not continue: daemon unreachable, no connected browser, version skew, or the session is gone. |
+
+Each issue carries `severity` (`warning`/`critical`/`fatal`), `category`, and whether it is `auto_recoverable`. `metrics` includes daemon latency, uptime, connected browsers, version-skew count, and the session's tab count. `recovery_suggestions` lists the next command to run; environment-level problems point back to `doctor.py`.
+
+Pass `--auto` to attempt automatic recovery for recoverable issues (currently tab reload). Sessions reported as `session_state`/`fatal` are not recoverable — stop them with `bsk session stop <id>` and start a new session.
+
 ## Development environment setup
 
 This section covers the complete development environment for working with BrowserSkill Pro — both for using the helpers and for contributing to the skill package.
@@ -54,8 +78,8 @@ These are required to run BrowserSkill Pro in agent workflows:
 | **Python** | 3.8+ | 3.10+ or 3.12+ | For `doctor.py`, `snapshot.py`, `screenshot.py`, `wait_for.py` |
 | **PowerShell** | 5.1+ (Windows) | 7+ (PowerShell Core cross-platform) | For `invoke.ps1` and Windows workflows |
 | **Bash** | Any (Git Bash, WSL, macOS) | Latest | For `invoke.sh` and POSIX workflows |
-| **bsk CLI** | 0.1.0+ | **0.1.7** (current) | Must match extension protocol version |
-| **Browser extension** | MV3-compatible | **0.1.3** (current) | Chrome Web Store or built from source |
+| **bsk CLI** | 0.1.0+ | **0.2.2** (current) | Must match extension protocol version |
+| **Browser extension** | MV3-compatible | **0.2.2** (current) | Chrome Web Store or built from source; shares one semver with CLI since 0.2.2 |
 | **Git** | 2.20+ | Latest | For version control and skill installation |
 
 ### Python environment
@@ -96,7 +120,7 @@ $PSVersionTable.PSVersion   # should be 5.1+ (Windows) or 7+ (cross-platform)
 
 ```bash
 # Check bsk CLI version
-bsk --version              # should be 0.1.7 or compatible
+bsk --version              # should be 0.2.2 or compatible
 
 # Quick connectivity test (no browser actions)
 bsk status                 # should show daemon and extension status
@@ -209,9 +233,9 @@ This runs a local dev server that automatically rebuilds and reloads the extensi
 
 > **Important**: The `bsk` CLI and the browser extension must match in protocol version.
 >
-> **Current versions (as of 2026-07-16)**:
-> - CLI: `0.1.7` (from `Cargo.toml` workspace.package.version)
-> - Extension: `0.1.3` (from `apps/extension/package.json`)
+> **Current versions (as of 2026-09-08)**:
+> - CLI: `0.2.2` (from `Cargo.toml` workspace.package.version)
+> - Extension: `0.2.2` (from `apps/extension/package.json` — CLI / Extension / DSH Plugin share one semver since 0.2.2)
 >
 > **Protocol compatibility**:
 > - If you update one side (CLI or extension), you must rebuild/reinstall the other as well
