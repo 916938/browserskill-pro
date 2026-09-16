@@ -10,14 +10,19 @@ Control the user's live browser through the bsk CLI.
 **Version compatibility**: This skill package works with **bsk CLI 0.1.0+**. The **`bsk invoke` passthrough command** (available in bsk 0.2.0+) enables the invoke helpers to forward raw JSON without host-side parsing. If `bsk invoke` is unavailable, helpers automatically fall back to direct typed-command mode.
 
 Current recommended versions:
-- **bsk CLI**: 0.2.2
-- **BrowserSkill extension**: 0.2.2 (CLI / Extension / DSH Plugin share one semver since 0.2.2)
+- **bsk CLI**: 0.2.3
+- **BrowserSkill extension**: 0.2.3 (CLI / Extension / DSH Plugin share one semver since 0.2.2)
+- **Daemon protocol**: 1.3
 
 Feature availability by CLI version:
 
 - `bsk invoke` passthrough: 0.2.0+
 - `bsk observe` (VOM semantic view), `hover`, `console`, `emulate`, `window resize`, `templates`, `logs`, `update`, `completion`: 0.2.1+
 - `bsk upload` / `bsk download`, `observe --probe-hover`, fill validation errors: 0.2.2+
+- `bsk screenshot --full-page`, `bsk wheel`, `bsk scroll-to`, `bsk focus` / `bsk blur`, extension automation settings replacing CLI overrides, `session start --name` with operation audit: **0.2.4+** (merged after the 0.2.3 release; requires a build newer than 2026-09-08)
+- User-scope tab commands (`tab list|select|create --browser-id`, `tab observe`): **fork build only** (`916938/browserskill-new` @ 2026-09-14 or later)
+
+A command in the 0.2.4+/fork tiers is absent from released binaries. Confirm with `bsk <command> --help` before relying on it, and continue with what the installed build supports when it is missing.
 
 ## When NOT to use
 
@@ -48,7 +53,7 @@ Feature availability by CLI version:
    ```powershell
    $sessionId = bsk session start --browser <instance-id-or-label>
    ```
-   Run `bsk browsers` to list available instances. Add `--no-focus` to the same start command when the Agent Window should not interrupt the user's current work.
+   Run `bsk browsers` to list available instances. Use `--browser-id <instance-id>` when the routing key must never resolve through a label. Add `--no-focus` to the same start command when the Agent Window should not interrupt the user's current work. `--name "..."` labels the session in local operation audit (0.2.4+).
 3. Use `bsk tab list --scope user` + `bsk tab borrow <tab-id>` for user-owned existing tabs, or `bsk navigate <url>` for task-owned tabs.
 
 **Smart labels are editable aliases, not identity.** The `instance_id` is the stable routing key; a label may be duplicated, missing, or offline. When a label is ambiguous, re-run `bsk browsers` and use the full `instance_id` instead of guessing. Labels are edited in the extension popup and may briefly reconnect the extension — never cache label-to-id mappings across tasks. Do not switch an active session to another instance; stop it and start a new one.
@@ -62,6 +67,8 @@ Feature availability by CLI version:
 - Multiple browsers connected? Run `bsk browsers` to list them, then `bsk session start --browser <instance-id-or-label>` to target a specific one.
 - Page state is unknown? Start with `bsk observe --session <id>` — a semantic VOM view with fresh `@e` refs. Use `snapshot.py --auto` only when a stricter static accessibility tree is more useful.
 - Expected control is missing and no `[has-submenu]` / `[hover first: ...]` marker points at a trigger? Try `bsk observe --probe-hover` once (0.2.2+), or hover the trigger with `bsk hover <ref>` and observe again before acting.
+- Need the whole page in one image? `bsk screenshot --full-page --out page.png --session <id>` (0.2.4+, default 2m deadline; `--timeout 5m` to extend). Exclusive with `--ref`; see [references/long-screenshot.md](references/long-screenshot.md).
+- Need to scroll? `bsk scroll-to @e3` reveals one element; `bsk wheel --delta-y 600` sends native wheel input. Both are browser mutations — observe afterwards instead of assuming the scroll finished.
 - Need controls only? Use `snapshot.py --mode compact`.
 - Need article text, long static content, or Chinese text extraction? Use `snapshot.py --mode file` and read only the relevant file sections.
 - Sending Chinese, nested JSON, or quote-heavy arguments? Use a UTF-8 args file instead of inline shell quoting.
@@ -94,6 +101,8 @@ Additional BrowserSkill capabilities:
 - `bsk status` - Connection health, connected browsers, active sessions
 - `bsk browsers` - List all connected browser instances
 - `bsk session start --browser <id-or-label>` - Target a specific browser when multiple are connected
+- `bsk session start --browser-id <instance-id>` - Same targeting, exact instance id only; never resolves through a label
+- `bsk session start --name "..."` - Label the session in local operation audit (0.2.4+; see [references/operation-audit.md](references/operation-audit.md))
 - `bsk session list` - List active sessions
 - `bsk session stop --all` - Stop every active session (emergency cleanup)
 - `bsk tab select <tab-id> --session <id>` - Focus an agent tab (e.g. after finding a background tab)
@@ -113,7 +122,20 @@ Additional BrowserSkill capabilities:
 - `bsk download <ref> --out <path> --session <id>` - Capture a browser download (0.2.2+). Default-refuses to overwrite an existing file; pass `--overwrite` when replacing is intended.
 - `bsk emulate --device <preset> --session <id>` - Emulate a mobile device (viewport, UA, touch) on one tab; presets like `iphone-14`, `pixel-7`; `--off` restores the real environment. New tabs do not inherit emulation.
 - `bsk window resize --width <w> --height <h> --session <id>` - Resize the session's Agent Window (100..=7680 CSS px). `bsk session start` also accepts `--width/--height`.
+- `bsk observe --max-depth <n> --max-tokens <n> --session <id>` - Bound a semantic observation on a large page; the JSON result reports `truncated`.
+- `bsk observe --cursor <cursor> --session <id>` - Continue a truncated observation instead of re-reading the page (0.2.4+). Use your current refs before continuing; it cannot be combined with `--max-depth`, `--probe-hover` or `--debug-surfaces`.
+- `bsk screenshot --ref @eN --session <id>` - Crop to a DOM element **or a Canvas region**; canvas regions appear as `@eN` refs in `observe` (0.2.4+).
 - `bsk session start --no-focus` - Open the Agent Window in the background without stealing focus.
+- `bsk screenshot --full-page --out <path> --session <id>` - Stitch a whole-page PNG (0.2.4+). Exclusive with `--ref`; `--timeout` sets the capture deadline (default `2m`). See [references/long-screenshot.md](references/long-screenshot.md).
+- `bsk scroll-to <ref-or-selector> --session <id>` - Scroll an element and its frames into view; returns the visible portion's bounds in viewport CSS pixels (0.2.4+). Partial visibility counts as success.
+- `bsk wheel --delta-y <px> --session <id>` - Native mouse-wheel event at the viewport centre or an optional target; `--delta-x`, `--modifiers alt,ctrl,meta,shift` (0.2.4+). Dispatch success does not mean the scroll finished.
+- `bsk focus <ref-or-selector> --session <id>` / `bsk blur <ref-or-selector> --session <id>` - Move or drop keyboard focus explicitly (0.2.4+).
+- `bsk tab list --browser-id <instance-id> --scope user` - List a browser's user tabs without starting a session (fork build). Requires `--scope user`.
+- `bsk tab observe --browser-id <instance-id> --tab-id <id> --expected-origin <url>` - Read visible text from a user tab read-only: no injection, no CDP, no form/storage/network access (fork build). `--expected-origin` is required and must match the tab's real origin; `--max-chars` caps output (default `4000`, max `8000`).
+- `bsk tab select <tab-id> --browser-id <instance-id> [--expected-origin <url>]` - Activate a user tab and refocus its original window (fork build). Pass the origin to re-verify the tab before it is focused.
+- `bsk tab create --browser-id <instance-id> <url>` - Open a tab in the user's own window instead of the Agent Window (fork build).
+- `bsk install-skill --list` / `--harness <id>` / `--all` / `--source <path>` - Install this skill into local agent harnesses; `--source` installs a custom `SKILL.md` and suspends skill auto-update.
+- `bsk daemon start|stop|restart` - Manage the daemon; add `--daemon-idle 2h` or `--session-idle 10m` when starting.
 - `bsk templates list|get|create|update|delete|apply` - Manage Profile Templates (metadata CRUD + controlled apply; never an account backup or credential migration mechanism).
 - `bsk logs` - Print (and optionally follow) the daemon log file.
 - `bsk update` - Check for and install bsk CLI updates.
@@ -402,6 +424,46 @@ scripts/network.sh --session "$SID" --limit 20 --json
 # Next call: --since <cursor_from_previous_response>
 ```
 
+## Deprecated automation overrides
+
+The extension's **Automation settings** (popup → 自动化设置: 借用标签页前确认 / 允许请求人工协助) decide whether tab borrows ask for confirmation and whether human help is available. They are authoritative and saved per browser profile. These legacy inputs still parse so old scripts do not break, but they have **no effect** — the CLI only logs a warning:
+
+| Legacy input | Use instead |
+|---|---|
+| `bsk session start --unattended` | Extension setting "允许请求人工协助 / Allow requests for human help" |
+| `bsk tab borrow --no-confirm` | Extension setting "借用标签页前确认 / Confirm before borrowing tabs" |
+| `BSK_REQUEST_HELP=off` | Same setting. A `request-help` result of `disabled` means the user turned the setting off — it is **not** a signal that they completed the step; report the blocker instead. |
+
+Protocol-version gates: `request-help` needs daemon protocol **1.3**, and `bsk tab borrow --timeout` needs **1.2**. An older daemon fails fast with `unsupported_feature` naming the required protocol; update CLI and extension together, then `bsk daemon restart`. Everything else — sessions, navigation, reading — keeps working.
+
+## Environment variables
+
+| Variable | Purpose | Default |
+|---|---|---|
+| `BSK_DEFAULT_SESSION` | Session id used when `--session` is omitted | _(none)_ |
+| `BSK_INVOKE_TIMEOUT_MS` | Default `bsk invoke` timeout in milliseconds | `30000` |
+| `BSK_AUTO_UPDATE` | Set `off` to stop the daemon from upgrading `bsk` | on |
+| `BSK_HOME` | Daemon runtime directory (`daemon.json`, sockets, audit logs) | `~/.bsk` |
+| `BSK_AUTO_START` | Set `0` to disable implicit daemon startup; commands then only connect | implicit start enabled |
+| `BSK_REQUEST_HELP` | **Deprecated, ignored** — use the extension automation setting | _(none)_ |
+
+Set `BSK_HOME` on both sides when a sandboxed shell must talk to a daemon owned by the host; see [references/sandboxed-agents.md](references/sandboxed-agents.md).
+
+## Reference documents
+
+These are loaded on demand, not with every task:
+
+| Document | Read when |
+|---|---|
+| [references/protocol.md](references/protocol.md) | Exact command parameters, exit codes, privacy constraints |
+| [references/operations.md](references/operations.md) | Installation, diagnostics, recovery, shared-daemon setups |
+| [references/long-screenshot.md](references/long-screenshot.md) | Full-page capture limits and failure semantics (0.2.4+) |
+| [references/wheel.md](references/wheel.md), [scroll-to.md](references/scroll-to.md) | Scrolling semantics, returned bounds, error codes (0.2.4+) |
+| [references/operation-audit.md](references/operation-audit.md) | What the local audit log records and where it lives (0.2.4+) |
+| [references/sandboxed-agents.md](references/sandboxed-agents.md) | A sandbox reaps background daemons (shared `BSK_HOME` + `BSK_AUTO_START=0`) |
+| [references/user-tab-control.md](references/user-tab-control.md) | Reading and selecting user tabs without borrowing them (fork build) |
+| [references/how-it-works.md](references/how-it-works.md) | Human maintainers: architecture and design rationale |
+
 ## Minimal workflows
 
 Readiness smoke test, with no page changes:
@@ -439,11 +501,14 @@ bsk session stop $SESSION_ID
 
 User-owned tab workflow: call `bsk tab list --scope user`, find the target tab, `bsk tab borrow <tab-id>`, take a compact `snapshot`, perform the requested action, `bsk tab return <tab-id>`, and do not close the tab unless the user explicitly asks.
 
+If you only need to confirm which page a user tab is showing, do not borrow it: `bsk tab observe --browser-id <instance-id> --tab-id <id> --expected-origin <url>` returns the visible text read-only, with no page injection and no access to forms, storage or network (fork build). Borrow only once a real action is needed.
+
 ## Follow one task workflow
 
 1. Start a session with `bsk session start` and capture the session ID.
 2. Use `bsk tab list --scope user` + `bsk tab borrow <tab-id>` for a user-owned existing tab, or `bsk navigate <url>` for a task-owned tab.
 3. Observe before acting: run `bsk observe --session <id>` for unknown pages. Escalate reading only as needed — `observe` → `observe --probe-hover` (0.2.2+) → `snapshot.py --mode compact` / `--mode file` → `get-html` → `screenshot`. Do not start with raw HTML or screenshots merely to discover ordinary controls.
+   Large pages: if the observation reports `truncated`, continue it with `bsk observe --cursor <next_cursor>` (0.2.4+) or raise `--max-depth` / `--max-tokens` — do not fall back to raw HTML just because one observation was cut short.
 4. Use the observation's `@e` refs with `bsk click`, `bsk fill`, `bsk hover`, and `bsk select`. Navigation invalidates refs; large DOM changes may also make them stale — observe again before the next interaction.
 5. After navigation or a click that should change the page, use [wait_for.py](scripts/wait_for.py) or poll URL/title up to three times.
 6. Observe again after a substantial DOM change; old refs may be stale.

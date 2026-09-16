@@ -11,8 +11,14 @@ BrowserSkill Pro is an agent skill that wraps the `bsk` CLI with Python/PowerShe
 | `skill/SKILL.md` | Primary agent instructions — read this first. |
 | `skill/references/protocol.md` | Command parameters, exit codes, privacy constraints. |
 | `skill/references/operations.md` | Installation, status checks, failure recovery. |
+| `skill/references/long-screenshot.md` | Full-page capture contract and limits (bsk 0.2.4+). |
+| `skill/references/wheel.md` | Native wheel input semantics (bsk 0.2.4+). |
+| `skill/references/scroll-to.md` | Element reveal, visible bounds, error codes (bsk 0.2.4+). |
+| `skill/references/operation-audit.md` | Local audit log scope, storage and retention (bsk 0.2.4+). |
+| `skill/references/sandboxed-agents.md` | Shared daemon (`BSK_HOME` + `BSK_AUTO_START=0`) for sandboxed shells. |
+| `skill/references/user-tab-control.md` | `--browser-id` user tabs and read-only `tab observe` (fork build). |
 | `skill/references/how-it-works.md` | Architecture and design rationale (human-only, high context cost). |
-| `skill/examples/` | End-to-end workflow examples (form fill, scroll, popup, network, record + replay). |
+| `skill/examples/` | End-to-end workflow examples (form fill, scroll, popup, network, record + replay, long screenshot, user tabs). |
 | `skill/scripts/` | Python and shell helpers (`doctor.py`, `snapshot.py`, `screenshot.py`, `wait_for.py`, `invoke.ps1`, `invoke.sh`, `record.ps1`, `record.sh`, `network.ps1`, `network.sh`, `replay.py`). |
 | `skill/agents/openai.yaml` | Optional OpenAI/Codex UI metadata. |
 | `tests/` | Unit tests for the Python helpers. |
@@ -59,7 +65,10 @@ bsk session stop $SESSION_ID
 - **UTF-8 output** — Python helpers configure UTF-8 stdout themselves. If mojibake appears, use `--mode file` and read the file instead.
 - **`invoke.ps1` safety** — `close_session` requires `-Force` flag to prevent accidental tab closure.
 - **`doctor.py` is read-only** — it never sends browser actions or starts the daemon.
-- **Layered docs** — `SKILL.md` for agent execution, `protocol.md` for parameters, `operations.md` for recovery, `how-it-works.md` for humans only.
+- **Layered docs** — `SKILL.md` for agent execution, `protocol.md` for parameters, `operations.md` for recovery, capability files (`long-screenshot.md`, `wheel.md`, `scroll-to.md`, `operation-audit.md`, `sandboxed-agents.md`, `user-tab-control.md`) loaded only for that capability, `how-it-works.md` for humans only.
+- **Availability tiers** — features merged after the bsk 0.2.3 tag are documented as **0.2.4+**, and `--browser-id` user-tab commands as **fork build only**. Never document a new command as generally available; name its tier and tell agents to confirm with `bsk <cmd> --help`.
+- **Docs follow the upstream repo** — the CLI source lives in `../browserskill-new`; verify command flags against `crates/bsk-cli/src/cli/*.rs` and `crates/bsk-protocol/schema/` before writing them down.
+- **Deprecated overrides stay documented** — `--unattended`, `tab borrow --no-confirm` and `BSK_REQUEST_HELP=off` still parse but do nothing; keep them listed as deprecated with their replacement rather than deleting them.
 
 ## Style conventions
 

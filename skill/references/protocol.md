@@ -162,7 +162,11 @@ The **Action** column is the name passed to `invoke.sh --action` / `invoke.ps1 -
 | `hover` | `bsk hover <ref>` | `ref`/`selector`, `modifiers`, `settle` | Hover a ref/selector to reveal menus; observe again before acting on revealed items. |
 | `fill` | `bsk fill <ref>` | `ref`/`selector`, `value` | Replace plain text in inputs, textareas, or contenteditable editors; rich-text markup is not preserved. |
 | `evaluate` | `bsk evaluate <code>` | `expression` | Read attributes or perform unsupported page logic. |
-| `screenshot` | `bsk screenshot` | `ref`, `format` | Capture the full visible tab, or use `ref` `@eN` to crop to one element. |
+| `screenshot` | `bsk screenshot` | `ref`, `format`, `full_page`, `timeout` | Capture the visible tab, crop to one `@eN` element with `ref`, or stitch the whole page with `full_page` (0.2.4+; see below). |
+| `wheel` | `bsk wheel` | optional `ref`/`selector`, `delta_x`, `delta_y`, `modifiers`, `timeout` | Native mouse-wheel input at the viewport centre or a target (0.2.4+). |
+| `scroll_to` | `bsk scroll-to` | `ref`/`selector`, `timeout` | Scroll an element and its frames into view, returning the visible bounds (0.2.4+). |
+| `focus` | `bsk focus` | `ref`/`selector` | Move keyboard focus to an element (0.2.4+). |
+| `blur` | `bsk blur` | `ref`/`selector` | Remove keyboard focus from an element (0.2.4+). |
 | `tab_close` | `bsk tab close <tab-id>` | `tab_id` | Close the selected task-owned tab. |
 | `tab_select` | `bsk tab select <tab-id>` | `tab_id` | Focus an agent tab (e.g. after finding a background tab). |
 | `session_stop` | `bsk session stop <id>` | `session_id` | Close all tabs associated with the session (`--force` in the helper). |
@@ -174,6 +178,14 @@ The **Action** column is the name passed to `invoke.sh --action` / `invoke.ps1 -
 | `status` | `bsk status` | Connection health, connected browsers, active sessions |
 | `browsers` | `bsk browsers` | List all connected browser instances (id, name, version, label, sessions) |
 | `session-start-browser` | `bsk session start --browser <id-or-label>` | Target a specific browser when multiple are connected |
+| `session-start-browser-id` | `bsk session start --browser-id <instance-id>` | Same targeting with an exact instance id; never resolves through a label |
+| `session-start-name` | `bsk session start --name "..."` | Label the session in local operation audit (0.2.4+); see [operation-audit.md](operation-audit.md) |
+| `install-skill` | `bsk install-skill --harness <id>` | Install this skill into local agent harnesses; `--list`, `--all`, `--source <path>`, `--force` |
+| `daemon-start` | `bsk daemon start` | Manage the daemon directly; `--daemon-idle 2h`, `--session-idle 10m`, `--foreground` |
+| `browsers-tab-list` | `bsk tab list --browser-id <id> --scope user` | List a browser's user tabs without a session (fork build; `--scope user` is required) |
+| `browsers-tab-observe` | `bsk tab observe --browser-id <id> --tab-id <id> --expected-origin <url>` | Read-only visible text from a user tab (fork build); see [user-tab-control.md](user-tab-control.md) |
+| `browsers-tab-select` | `bsk tab select <tab-id> --browser-id <id>` | Activate a user tab and refocus its window (fork build) |
+| `browsers-tab-create` | `bsk tab create <url> --browser-id <id>` | Open a tab in the user's own window (fork build) |
 | `session-list` | `bsk session list` | List active sessions |
 | `session-stop-all` | `bsk session stop --all` | Stop every active session (emergency cleanup) |
 | `press` | `bsk press <key>` | Send keyboard events (Enter, Ctrl+A, etc.) |
@@ -195,7 +207,82 @@ The **Action** column is the name passed to `invoke.sh --action` / `invoke.ps1 -
 | `update` | `bsk update` | Check for and install bsk CLI updates |
 | `completion` | `bsk completion <shell>` | Print tab-completion for bash, zsh, fish, or powershell |
 
-`bsk session start` also accepts `--no-focus` (open the Agent Window without stealing focus) and `--width`/`--height` (initial Agent Window size, both required together).
+`bsk session start` also accepts `--no-focus` (open the Agent Window without stealing focus), `--width`/`--height` (initial Agent Window size, both required together), `--browser-id <instance-id>` (exact instance routing) and `--name "..."` (operation-audit label, 0.2.4+).
+
+## Scrolling and viewport (0.2.4+)
+
+Prefer these two commands over `evaluate` + `window.scrollBy`; they run through the same session queue and user-interrupt gate as clicks.
+
+```bash
+# Reveal one element and read its visible bounds
+bsk scroll-to @e3 --session demo --json
+
+# Native wheel input: no target = viewport centre, positive Y scrolls down
+bsk wheel --delta-y 600 --session demo
+bsk wheel @e3 --delta-y -120 --modifiers ctrl,shift --session demo
+```
+
+| Aspect | `scroll-to` | `wheel` |
+|---|---|---|
+| Target | Exactly one (`@e3` positional, `--ref`, or `--selector`) | Optional; none means viewport centre |
+| Result | `x/y/width/height` visible bounds in top-level viewport CSS px | `x/y` dispatch point plus echoed `delta_x/delta_y` |
+| Partial visibility | Success (a clipped element still returns bounds) | Not applicable |
+| Success means | Element is in view | The wheel event was dispatched — not that scrolling or animation finished |
+
+Both are browser mutations: already-applied scrolling is never rolled back, so take a fresh `bsk observe` before retrying after a timeout or cancellation. Common errors: `invalid_params` (bad target/timeout), `not_found` (`ref_not_found` / `selector_not_found`), `permission_denied` (`agent_window_scope` — the tab was not borrowed, or `element_not_visible`), `cdp_failed`, `cancelled`, `timeout`. CSS selectors only search the main document; use refs for iframe and shadow-root elements. Details: [wheel.md](wheel.md) and [scroll-to.md](scroll-to.md).
+
+## Reading large or canvas-heavy pages (0.2.4+)
+
+`bsk observe` may return a truncated tree on very large pages. Its JSON result carries `truncated` and, when more content belongs to the same observation, `next_cursor`:
+
+```bash
+bsk observe --session demo --json                      # check truncated / next_cursor
+bsk observe --session demo --cursor <next_cursor>      # continue that same observation
+bsk observe --session demo --max-depth 12 --max-tokens 4000   # or raise the caps instead
+```
+
+- `--cursor` continues **one** observation: use the refs you already have before continuing, because the continuation reuses the same ref space.
+- `--cursor` cannot be combined with `--max-depth`, `--probe-hover` or `--debug-surfaces` — those change what is captured. `--max-tokens` is allowed alongside it.
+- `truncated: true` with no `next_cursor` means the caps cut the tree and nothing more can be resumed: re-run with looser `--max-depth` / `--max-tokens`.
+- Canvas-heavy pages now expose their **canvas regions as `@eN` refs** in the observation (unplaced regions are grouped under a fallback label), rather than being invisible to semantic reading. `bsk screenshot --ref @eN` accepts those refs and captures the DOM element or Canvas region; point clicks on a canvas region are supported too. Re-take a fresh observation after any capture or navigation — canvas identity is revalidated before a click, and stale visual refs are rejected.
+
+## Full-page screenshots (0.2.4+)
+
+```bash
+bsk screenshot --session demo --full-page --out page.png
+bsk screenshot --session demo --full-page --timeout 5m --out page.png --json
+```
+
+- `--full-page` is **mutually exclusive with `--ref`**; the element crop and viewport capture paths are unchanged.
+- Default capture/encoding deadline is 2 minutes; raise it with `--timeout` (`5m`, `180s`). CLI needs `--timeout` units — bare numbers mean milliseconds.
+- Works on scriptable HTTP(S) pages. Restricted browser pages, nested scrollers and virtualized lists are unsupported; a failure returns an error, never a partial image.
+- The CLI writes to a temp file and atomically replaces `--out` only after the full byte count validates, so a cancelled or failed capture never leaves a half-written PNG.
+- The Python helper exposes this as `screenshot.py --full-page` (and `screenshot.ps1 -FullPage`); `--timeout` there is in seconds.
+
+The daemon performs `tool.screenshot_full_page`, then bounded `tool.screenshot_read` chunks (≤ 256 KiB each) and `tool.screenshot_release`. Failure, timeout and Ctrl-C all restore the page's scroll position and temporary styles. See [long-screenshot.md](long-screenshot.md) for limits, quota behavior and the user-facing Quick Actions equivalents.
+
+## User-scope tabs (fork build)
+
+`--browser-id <instance-id>` operates on a connected browser's own windows instead of the Agent Window, and never creates a session. It always takes the value from `bsk browsers`, never a smart label.
+
+```bash
+bsk browsers
+bsk tab list --browser-id 03c3e47f --scope user --json
+bsk tab observe --browser-id 03c3e47f --tab-id 42 --expected-origin https://example.com
+bsk tab select 42 --browser-id 03c3e47f --expected-origin https://example.com
+bsk tab create https://example.com --browser-id 03c3e47f
+```
+
+`tab observe` is read-only: it returns the visible viewport text of that tab plus `origin`, `window_id` and a `document_id`, using a content receiver with no script injection, no CDP, and no access to form values, storage or network. Use it to confirm page identity before deciding whether a borrow is needed. See [user-tab-control.md](user-tab-control.md).
+
+## Daemon location and startup
+
+| Variable | Purpose |
+|---|---|
+| `BSK_HOME` | Overrides the daemon runtime directory (default `~/.bsk`); both sides of a shared setup must point at the same path |
+| `BSK_AUTO_START` | `0` disables implicit daemon startup — commands then connect only, and report the problem if nothing is listening |
+
+`bsk daemon start` accepts `--daemon-idle <dur>` (default 10m) and `--session-idle <dur>` (default 5m). Sandboxed shells that reap child processes need this arrangement; see [sandboxed-agents.md](sandboxed-agents.md).
 
 ## File transfer (bsk 0.2.2+)
 
@@ -257,7 +344,7 @@ A successful drop means Chrome dispatched the native file-drop event; it does no
 
 - Click a submit button directly when possible. Use `press` for special key events.
 - Top-frame actions cannot access cross-origin iframe contents. Navigate to the iframe URL directly when appropriate.
-- For long pages, scroll in bounded steps and take a fresh snapshot afterward:
+- For long pages, use `bsk scroll-to @eN` to reveal the target and `bsk wheel --delta-y 800` to advance (0.2.4+), then take a fresh snapshot. The `evaluate` recipe below is a fallback for older builds:
 
 ```javascript
 (() => {

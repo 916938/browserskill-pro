@@ -707,10 +707,19 @@ browserskill-pro/
 │   │   ├── login_and_fill_form.md
 │   │   ├── scroll_and_extract.md
 │   │   ├── handle_popup.md
-│   │   └── network_debug.md
+│   │   ├── network_debug.md
+│   │   ├── record_and_replay.md
+│   │   ├── long_screenshot.md
+│   │   └── user_tab_and_scroll.md
 │   ├── references/                     # Reference documents
 │   │   ├── protocol.md                 # Command parameters and response formats
 │   │   ├── operations.md               # Installation, status checks, fault recovery
+│   │   ├── long-screenshot.md          # Full-page capture limits (0.2.4+)
+│   │   ├── wheel.md                    # Native wheel input semantics (0.2.4+)
+│   │   ├── scroll-to.md                # Element reveal + visible bounds (0.2.4+)
+│   │   ├── operation-audit.md          # Local audit log scope and storage (0.2.4+)
+│   │   ├── sandboxed-agents.md         # Shared daemon for sandboxed shells
+│   │   ├── user-tab-control.md         # --browser-id user tabs (fork build)
 │   │   └── how-it-works.md             # Architecture principles (for human maintainers)
 │   └── scripts/
 │       ├── invoke.ps1                  # PowerShell invocation wrapper
@@ -735,6 +744,9 @@ browserskill-pro/
 | `SKILL.md` | AI Agent | Loaded during every execution |
 | `protocol.md` | Agent Developers | Loaded when querying parameters |
 | `operations.md` | DevOps/Maintainers | Loaded during troubleshooting |
+| `long-screenshot.md`, `wheel.md`, `scroll-to.md`, `operation-audit.md` | AI Agent | Loaded for that specific capability (0.2.4+) |
+| `sandboxed-agents.md` | DevOps/Maintainers | Loaded when a sandbox reaps the daemon |
+| `user-tab-control.md` | AI Agent | Loaded before touching a user's own tabs (fork build) |
 | `how-it-works.md` | Human Maintainers | Not loaded for routine operations |
 
 ---
@@ -805,7 +817,9 @@ python3 ./skill/scripts/doctor.py --wait-connected 20
 
 ### Current Version: v1.1.0 (MVR)
 
-Released 2026-07-17 — delivered the P0 reliability infrastructure: error classification (`error_codes.py`), structured JSON errors (`error_formatter.py`), input validation (`validator.py`), smart retry (`retry_handler.py`), and timeout management (`timeout_manager.py`). 238 unit tests passing. Skill docs are aligned with bsk CLI 0.2.2.
+Released 2026-07-17 — delivered the P0 reliability infrastructure: error classification (`error_codes.py`), structured JSON errors (`error_formatter.py`), input validation (`validator.py`), smart retry (`retry_handler.py`), and timeout management (`timeout_manager.py`). 238 unit tests passing.
+
+Skill docs are aligned with **bsk CLI 0.2.3** (released 2026-09-08), daemon protocol 1.3. Commands merged after that tag — `screenshot --full-page`, `wheel`, `scroll-to`, `focus` / `blur`, `session start --name` — are labelled **0.2.4+** in the docs, and the `--browser-id` user-tab commands are labelled **fork build only**; both need a build newer than 0.2.3 and are otherwise simply absent.
 
 ### Next: complete the v1.1.0 roadmap
 

@@ -2,6 +2,41 @@
 
 ## [Unreleased]
 
+### Aligned with bsk CLI 0.2.3 + post-0.2.3 additions (2026-09-17)
+
+Synced against `browserskill-new` HEAD (`abfea72`, 2026-09-14), which merges Tencent/BrowserSkill through PR #226 / #225 / #237 / #220 / #217 / #211 / #209 / #205 / #224 / #223 plus the fork's own user-scope tab work. Baseline is the 0.2.3 release (2026-09-08); the rest is unreleased.
+
+#### Tier labels
+
+Every command now carries its availability tier, instead of implying one version supports everything:
+
+- Released baseline: **bsk CLI / extension 0.2.3**, daemon protocol 1.3.
+- **0.2.4+** — merged after the 0.2.3 tag (build newer than 2026-09-08): `screenshot --full-page`, `wheel`, `scroll-to`, `focus` / `blur`, `session start --name` with operation audit, and the extension automation settings that replace `--unattended`.
+- **Fork build only** — `tab list|create|select --browser-id` and `tab observe` (`916938/browserskill-new` @ 2026-09-14+).
+
+#### New reference documents (ported from upstream `docs/`, adapted)
+
+- `references/long-screenshot.md` — full-page capture contract: `--full-page` vs `--ref` exclusivity, 2-minute default deadline raised with `--timeout`, atomic write after the whole byte count validates, no partial-success failures, supported-page limits, OPFS staging and release rules, version-match requirement.
+- `references/wheel.md` — native mouse-wheel input: delta/modifier/target rules, viewport-centre fallback, why success means "dispatched" rather than "scrolled", CSS-pixel and page-zoom caveats, error codes.
+- `references/scroll-to.md` — element reveal contract: returned `x/y/width/height` in top-level viewport CSS pixels, partial visibility counting as success, the rectangle not being an occlusion test, full error table.
+- `references/operation-audit.md` — one session = one task, `session start --name`, 执行中/已结束/已中断 statuses (never infer success), per-OS storage paths and `BSK_HOME` override, 30-day retention, metadata-only recording with hidden inputs.
+- `references/sandboxed-agents.md` — keep the daemon in the owning host environment and connect with `BSK_HOME` + `BSK_AUTO_START=0` when a sandbox reaps child processes.
+- `references/user-tab-control.md` (new, fork-only) — `--browser-id` operations and read-only `tab observe`, written from CLI source since upstream documents none of it.
+
+#### Docs updated
+
+- **SKILL.md**: version block rebuilt around tiers; new capability entries for full-page screenshots, `wheel` / `scroll-to` / `focus` / `blur`, `install-skill --source`, `daemon start --daemon-idle`, and the fork's user-tab commands; new **Deprecated automation overrides** section (`--unattended`, `tab borrow --no-confirm`, `BSK_REQUEST_HELP=off` parse but are ignored, and a `disabled` request-help outcome is a blocker rather than a completion signal), with the protocol gates — `request-help` needs daemon protocol 1.3, `tab borrow --timeout` needs 1.2; new **Environment variables** table including `BSK_HOME` and `BSK_AUTO_START`; a **Reference documents** index so the new files are discoverable without loading them; decision-tree entries for whole-page capture and scrolling; the user-tab workflow now reads read-only before borrowing; the task workflow tells agents to continue a truncated observation with `observe --cursor` instead of dropping to raw HTML.
+- **protocol.md**: added `wheel`, `scroll_to`, `focus`, `blur` to the action table; `screenshot` row documents `full_page` / `timeout`; new **Reading large or canvas-heavy pages** section (`observe --cursor` continuation contract, `truncated` / `next_cursor`, canvas regions exposed as `@eN` refs and capturable with `screenshot --ref`); new **Scrolling and viewport**, **Full-page screenshots**, **User-scope tabs** and **Daemon location and startup** sections; the long-page recipe prefers `scroll-to` / `wheel` and demotes the `evaluate` form to a fallback for older builds.
+- **operations.md**: dependency table and version-matching block moved to 0.2.3 with the unreleased tiers named; `install-skill --source` documented as the durable install that auto-sync protects; five new diagnose rows (protocol-gate failures, `BSK_AUTO_START=0`, daemon reaped by a sandbox, immediate full-page failure, deprecated automation overrides); new **Sandboxed Agent commands** section.
+- **examples/**: new `long_screenshot.md` (capture → verify → clean up, plus the staggered fallback) and `user_tab_and_scroll.md` (read-only identity check, borrow only to act, scroll, return); `scroll_and_extract.md` now leads with `wheel` / `scroll-to`.
+
+#### Scripts
+
+- `screenshot.py`: `--full-page` and `--timeout` (seconds) forward `--full-page` / `--timeout <n>s` to `bsk screenshot`; `--selector` + `--full-page` is rejected before any daemon call; `--timeout` is forwarded only for full-page captures.
+- `screenshot.ps1`: matching `-FullPage` switch and `-TimeoutSec` wiring, keeping Python/PowerShell parity.
+- `bsk_client.py`: `True` keyword values emit a bare flag (`full-page=True` → `--full-page`) instead of a value-taking pair, for both `bsk()` and `bsk_with_raw()`.
+- `tests/test_screenshot.py`: 5 new cases (flag default, parsing, mutual exclusion, forwarded flags, viewport calls omitting `--timeout`). Suite: 292 passing.
+
 ### v1.1.0 P0 completion: health monitoring + fallback chain (2026-09-08)
 
 - `health_checker.py` (roadmap #3) — session health monitoring: environment checks (daemon reachability, connected browsers, version skew, recent restart, daemon latency) plus session-level checks (liveness, tab-list readability, zombie sessions with zero tabs). Emits a JSON `HealthReport` (`healthy` / `degraded` / `unhealthy`) with per-issue severity/category, `SessionMetrics`, recovery suggestions, and `--auto` recovery for auto-recoverable issues. Probes are injectable for testing; environment-level problems point back to `doctor.py`.

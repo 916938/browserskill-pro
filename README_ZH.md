@@ -704,10 +704,19 @@ browserskill-pro/
 │   │   ├── login_and_fill_form.md
 │   │   ├── scroll_and_extract.md
 │   │   ├── handle_popup.md
-│   │   └── network_debug.md
+│   │   ├── network_debug.md
+│   │   ├── record_and_replay.md
+│   │   ├── long_screenshot.md
+│   │   └── user_tab_and_scroll.md
 │   ├── references/                     # 参考文档
 │   │   ├── protocol.md                 # 命令参数与响应格式
 │   │   ├── operations.md               # 安装、状态检查、故障恢复
+│   │   ├── long-screenshot.md          # 全页长截图限制与契约（0.2.4+）
+│   │   ├── wheel.md                    # 原生滚轮事件语义（0.2.4+）
+│   │   ├── scroll-to.md                # 元素滚动入视口与可见矩形（0.2.4+）
+│   │   ├── operation-audit.md          # 本地操作审计的记录范围与存储（0.2.4+）
+│   │   ├── sandboxed-agents.md         # 沙箱环境下共享 daemon
+│   │   ├── user-tab-control.md         # --browser-id 操作用户标签页（fork 构建）
 │   │   └── how-it-works.md             # 架构原理（人类维护者阅读）
 │   └── scripts/
 │       ├── invoke.ps1                  # PowerShell 调用封装
@@ -732,6 +741,9 @@ browserskill-pro/
 | `SKILL.md` | AI Agent | 每次执行时加载 |
 | `protocol.md` | Agent 开发者 | 参数查询时加载 |
 | `operations.md` | DevOps/维护者 | 故障排查时加载 |
+| `long-screenshot.md`、`wheel.md`、`scroll-to.md`、`operation-audit.md` | AI Agent | 用到该能力时加载（0.2.4+） |
+| `sandboxed-agents.md` | DevOps/维护者 | 沙箱会回收 daemon 时加载 |
+| `user-tab-control.md` | AI Agent | 需要操作用户自有标签页时加载（fork 构建） |
 | `how-it-works.md` | 人类维护者 | 仅架构理解时不加载 |
 
 ---
