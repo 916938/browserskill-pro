@@ -9,6 +9,7 @@
 [![Agent Skill](https://img.shields.io/badge/Agent-Skill-black.svg)](skill/SKILL.md)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg)](#quick-start)
 [![Version](https://img.shields.io/badge/Version-v1.1.0-green.svg)](CHANGELOG.md)
+[![bsk](https://img.shields.io/badge/bsk-0.2.3+-orange.svg)](https://github.com/916938/browserskill-new)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 </div>
@@ -19,6 +20,7 @@
 
 - [Introduction](#introduction)
 - [Features](#features)
+- [Version Compatibility](#version-compatibility)
 - [Quick Start](#quick-start)
 - [Installation Guide](#installation-guide)
   - [Windows Installation](#windows-installation-codebuddy--workbuddy--claude-code--codex)
@@ -40,6 +42,8 @@
 BrowserSkill Pro is a standalone Agent Skill that controls users' **real, authenticated browsers** through the local **BrowserSkill daemon**.
 
 As long as an Agent can read Agent Skill instructions and execute local shell commands, it can use the core workflow. This repository additionally provides OpenAI/Codex metadata, but core protocol and operation instructions do not depend on any specific Agent product.
+
+**Aligned bsk version**: CLI and extension **0.2.3** (daemon protocol **1.3**). Since 0.2.2 the CLI, extension and DSH plugin share one semver — upgrade all three together, because a mismatch fails with exit code 5.
 
 ### ⚠️ Project Origin & Disclaimer
 
@@ -108,43 +112,76 @@ Local AI Agent (CodeBuddy / Claude Code / WorkBuddy / Codex)
 
 | Feature | Description |
 |---------|-------------|
-| **Tab Borrow/Return** | `bsk tab borrow` / `bsk tab return` safely borrows user tabs and returns them after task completion |
-| **Human Intervention Request** | `bsk request-help` proactively requests user assistance for CAPTCHA, login, etc. |
-| **WebSocket Communication** | Daemon communicates with extension via WebSocket for efficiency and low latency |
-| **Rich CLI Commands** | Built-in `press`, `select`, `navigate`, `reload`, `get-html`, etc. |
-| **Cross-Platform Support** | Native helpers for Windows (PowerShell), Linux/macOS (Bash) |
-| **Smart Snapshot Control** | Auto-strategy, compact UI summary, or full snapshot to file |
-| **Doctor Self-Check** | Checks daemon, port, and extension connection; outputs JSON reason |
-| **Session Health Monitoring** | `health_checker.py` assesses active sessions (connectivity, version skew, latency, zombie tabs) with `healthy`/`degraded`/`unhealthy` status, metrics, and optional auto-recovery |
-| **Graceful Degradation Chain** | `fallback_chain.py` executes actions through passthrough → legacy → simplified-args levels with per-attempt decision logging and emergency cleanup |
-| **Smart Waiting** | Polls by URL, title, or accessible text without repeating original click |
-| **Popup Diagnostics** | Checks SPA, background tabs, and popup blocking when page doesn't change |
-| **Privacy Minimization** | Limits reading of cookies, auth headers, browser storage, and private content |
-| **Multi-Browser Support** | `bsk browsers` lists all instances; each browser has independent sessions |
-| **Layered Documentation** | Agent operations, protocol reference, recovery docs, and architecture docs are separated |
+| **Session Lifecycle** | `bsk session start` / `stop` — one session per task; the 5-minute idle timeout is a backstop, not cleanup |
+| **Semantic Observation** | `bsk observe` returns the VOM semantic view with fresh `@e` refs and is the default first observation; `--probe-hover` uncovers CSS hover menus |
+| **Tab Borrow/Return** | `bsk tab borrow` / `bsk tab return` safely borrows user tabs and returns them as soon as the step is done |
+| **Multi-Browser & Instance Routing** | `bsk browsers` lists instances; `--browser-id <instance_id>` routes exactly (a smart label is only an editable alias and may be duplicated) |
+| **Rich Interaction Commands** | `click`, `hover`, `fill`, `select`, `press`, `scroll-to`, `wheel`, `focus`, `blur` |
+| **File Upload & Download** | `bsk upload` (input mode or `--mode drop`) and `bsk download` stage files through the daemon, never through browser-internal paths |
+| **Record & Replay** | `bsk record` captures a user's actions; `replay.py` replays a trace by semantic target (always `--dry-run` first) |
+| **Debugging Evidence** | `network` / `console` read requests and logs with cursor pagination; `screenshot` (incl. `--full-page`) and `get-html` |
+| **Human Intervention Request** | `bsk request-help` asks the user to handle CAPTCHA, login, OTP, or payment confirmation |
+| **Smart Snapshot & Waiting** | `snapshot.py --auto` picks compact vs. file output; `wait_for.py` polls URL, title, or visible text |
+| **Health & Degradation** | `doctor.py` (no-side-effect check), `health_checker.py` (session health report), `fallback_chain.py` (level-by-level fallback) |
+| **Read-Only User Tab Observation** | `bsk tab observe --browser-id` reads visible text only: no injection, no CDP, no access to forms or storage (fork build) |
+| **Close a Browser Instance** | `bsk browsers close --browser-id <id> --confirm` — only when the user explicitly asks for that instance to be closed (fork build) |
+| **Cross-Platform Helpers** | Windows (PowerShell) and Linux/macOS (Bash) helpers plus zero-dependency Python helpers |
+| **Privacy Minimization** | Limits reading of cookies, auth headers, tokens, password fields, browser storage, and unrelated private content |
+| **Layered Documentation** | `SKILL.md` → `protocol.md` → `operations.md` → capability docs (long screenshot / wheel / scroll-to / audit / sandbox / user tabs) |
+
+---
+
+## Version Compatibility
+
+| Component | Minimum | Recommended | Notes |
+|-----------|---------|-------------|-------|
+| bsk CLI | 0.1.0 | **0.2.3** | Below 0.2.0 the helpers fall back to legacy (typed subcommand) mode |
+| Browser extension | 0.1.0 | **0.2.3** (must match the CLI) | A CLI/extension mismatch surfaces as exit code 5 |
+| Daemon protocol | 1.2 | **1.3** | `request-help` needs 1.3; `tab borrow --timeout` needs 1.2 |
+| Python | 3.8+ | 3.12+ | Helpers only; no third-party dependencies |
+| Node.js / pnpm | 18+ / 9.x | 20 LTS / 10.17.0 | Only needed to build the extension from source |
+
+Capabilities ship in **three tiers**, and both this README and `skill/SKILL.md` label them:
+
+| Tier | Meaning | Examples |
+|------|---------|----------|
+| **0.2.3** | Released baseline (2026-09-08) | `observe`, `snapshot`, borrow/return, `request-help`, `record`, `network` / `console`, `upload` / `download`, `emulate`, `templates` |
+| **0.2.4+** | Merged after the 0.2.3 tag; needs a build newer than 2026-09-08 | `screenshot --full-page`, `wheel`, `scroll-to`, `focus` / `blur`, `session start --name` with operation audit |
+| **Fork build** | `916938/browserskill-new` only, absent from upstream releases | `tab list\|create\|select --browser-id`, `tab observe`, `browsers close` |
+
+> 0.2.4+ and fork-build capabilities are not in released binaries. Confirm with `bsk <command> --help` before relying on one, and continue with what the installed build supports when it is missing.
 
 ---
 
 ## Quick Start
 
-### 1. Install BrowserSkill
+### 1. Install BrowserSkill (bsk CLI + daemon)
 
-> You need to install the local daemon and browser extension before using this skill.
+> You need to install the local daemon and browser extension before using this skill. Current aligned version: **0.2.3**
 
-**macOS / Linux (Recommended):**
+**macOS / Linux:**
 ```bash
+# Upstream Tencent/BrowserSkill
 curl -fsSL https://raw.githubusercontent.com/Tencent/BrowserSkill/main/install.sh | sh
+
+# Or the fork (recommended): bsk invoke, user-tab commands and other Pro dependencies live there
+curl -fsSL https://raw.githubusercontent.com/916938/browserskill-new/main/install.sh | sh
 ```
 
 **Windows (PowerShell):**
 ```powershell
 irm https://raw.githubusercontent.com/Tencent/BrowserSkill/main/install.ps1 | iex
+
+# Fork build (recommended)
+irm https://raw.githubusercontent.com/916938/browserskill-new/main/install.ps1 | iex
 ```
 
 **Or via Cargo:**
 ```bash
 cargo install bsk-cli
 ```
+
+Verify afterwards: `bsk --version` — the CLI and extension versions must match, otherwise every command fails with exit code 5.
 
 ### 2. Install Browser Extension
 
@@ -159,9 +196,19 @@ Then load unpacked extension in Chrome (`chrome://extensions` → Developer mode
 
 > For detailed build steps, see [operations.md - Building the extension from source](skill/references/operations.md#building-the-extension-from-source)
 
+Confirm daemon, port, and extension connectivity with `bsk doctor`.
+
 ### 3. Install This Skill
 
-Copy the `skill/` directory from this repository to your Agent's skills directory:
+**Automatic (recommended):** `bsk install-skill` writes the skill into the agent harnesses it detects:
+
+```bash
+bsk install-skill --list             # show available harnesses
+bsk install-skill --all              # install everywhere
+bsk install-skill --source <path>    # install a custom SKILL.md (suspends skill auto-update)
+```
+
+**Manual:** copy the `skill/` directory from this repository to your Agent's skills directory:
 
 ```text
 <agent-skills-directory>/
@@ -586,11 +633,67 @@ python3 ./skill/scripts/snapshot.py --session demo --mode file
 **Windows:**
 ```powershell
 py -3 .\skill\scripts\screenshot.py --session demo
+# Full-page capture (0.2.4+, 2-minute default deadline)
+py -3 .\skill\scripts\screenshot.py --session demo --full-page --out page.png
 ```
 
 **Linux / macOS:**
 ```bash
 python3 ./skill/scripts/screenshot.py --session demo
+python3 ./skill/scripts/screenshot.py --session demo --full-page --out page.png
+```
+
+> `--full-page` and `--selector` are mutually exclusive; see [references/long-screenshot.md](skill/references/long-screenshot.md).
+
+### Semantic Observation (preferred first read)
+
+```bash
+bsk observe --session demo                 # VOM semantic view with @e refs
+bsk observe --session demo --probe-hover   # once, when an expected control is missing and no hover marker points at a trigger (0.2.2+)
+bsk scroll-to @e3 --session demo           # reveal one element (0.2.4+)
+bsk wheel --delta-y 600 --session demo     # native wheel input (0.2.4+)
+```
+
+### Record and Replay
+
+```bash
+scripts/record.sh start --purpose "publish an article" --output ./flow.json
+SID=$(bsk session start)
+python3 scripts/replay.py ./flow.json --session "$SID" --dry-run   # inspect the plan first
+python3 scripts/replay.py ./flow.json --session "$SID"             # then execute
+bsk session stop "$SID"
+```
+
+### Network and Console Evidence
+
+```bash
+scripts/network.sh --session "$SID" --limit 20 --json   # next call: --since <cursor>
+bsk console --session "$SID"
+```
+
+### File Upload and Download (0.2.2+)
+
+```bash
+bsk upload @e12 --file ./report.pdf --session "$SID"         # input mode (default)
+bsk upload @e20 --file ./a.png --mode drop --session "$SID"  # drop zone
+bsk download @e7 --out ./export.csv --session "$SID"
+```
+
+### Health Checks and Fallback Retries
+
+```bash
+py -3 skill/scripts/doctor.py --wait-connected 20                 # no-side-effect environment check
+py -3 skill/scripts/health_checker.py --session "$SID"            # session health report
+py -3 skill/scripts/fallback_chain.py --session "$SID" --action observe
+```
+
+### User Tabs and Instance-Level Operations (fork build)
+
+```bash
+bsk browsers                                                    # take instance_id from here
+bsk tab list --browser-id <instance_id> --scope user            # list user tabs
+bsk tab observe --browser-id <instance_id> --tab-id 42 --expected-origin https://example.com
+bsk browsers close --browser-id <instance_id> --confirm         # close a whole instance (use with care)
 ```
 
 ### Smart Wait
@@ -668,9 +771,12 @@ bsk browsers
 
 # Start session on specific browser (independent isolation)
 bsk session start --browser <instance-id-or-label>
+bsk session start --browser-id <instance-id>   # exact routing, never resolves through a label
 ```
 
 > If multiple browsers are connected but `--browser` is not specified, `bsk session start` will output available instance list.
+>
+> `bsk browsers close --browser-id <instance-id> --confirm` (fork build) closes **every** window of that instance — use it only when the user explicitly asks for it. Regular cleanup is `bsk session stop <id>`.
 >
 > **Warning:** This Skill can access real authentication states and should be treated as a high-privilege tool.
 
@@ -685,8 +791,8 @@ Please review the privacy policy and implementation of the corresponding product
 
 ```text
 browserskill-pro/
-├── README.md                           # This document (Chinese version)
-├── README_EN.md                        # English documentation
+├── README.md                           # This document (English)
+├── README_ZH.md                        # Chinese documentation
 ├── CHANGELOG.md                        # Version changelog
 ├── LICENSE                             # Open source license
 ├── AGENTS.md                           # Agent collaboration guidelines
@@ -722,19 +828,31 @@ browserskill-pro/
 │   │   ├── user-tab-control.md         # --browser-id user tabs (fork build)
 │   │   └── how-it-works.md             # Architecture principles (for human maintainers)
 │   └── scripts/
-│       ├── invoke.ps1                  # PowerShell invocation wrapper
-│       ├── invoke.sh                   # Bash invocation wrapper
-│       ├── doctor.py                   # Environment self-check
-│       ├── snapshot.py                 # Page snapshot tool
-│       ├── screenshot.py               # Screenshot utility
-│       ├── wait_for.py                 # Smart wait utility
+│       ├── invoke.ps1 / invoke.sh      # Invocation wrappers (auto-detect bsk invoke)
+│       ├── doctor.py                   # Environment self-check (no side effects)
+│       ├── snapshot.py                 # Page snapshot (compact / file / auto)
+│       ├── screenshot.py / .ps1        # Screenshots (incl. --full-page)
+│       ├── wait_for.py                 # Smart wait (URL / title / text)
+│       ├── health_checker.py           # Session health diagnostics (v1.1.0 P0)
+│       ├── fallback_chain.py           # Level-by-level fallback retries (v1.1.0 P0)
+│       ├── record.ps1 / record.sh      # Record user actions
+│       ├── replay.py                   # Replay a trace by semantic target
+│       ├── network.ps1 / network.sh    # Network evidence (cursor-paginated)
 │       ├── bsk_client.py               # bsk CLI abstraction layer
-│       └── screenshot.ps1              # Windows screenshot helper
+│       ├── error_codes.py              # Error classification (MVR)
+│       ├── error_formatter.py          # Unified error/success envelopes
+│       ├── retry_handler.py            # Exponential backoff retries
+│       ├── timeout_manager.py          # Layered timeouts and cancellation
+│       └── validator.py                # Input validation
 │
-└── tests/                              # Unit tests
+└── tests/                              # Unit tests (292 passed / 1 skipped)
     ├── test_doctor.py
     ├── test_snapshot.py
-    └── test_wait_for.py
+    ├── test_screenshot.py
+    ├── test_wait_for.py
+    ├── test_health_checker.py
+    ├── test_fallback_chain.py
+    └── ...                             # MVR module tests
 ```
 
 **Documentation Layering Guide:**
@@ -758,6 +876,8 @@ browserskill-pro/
 ```bash
 python3 -m unittest discover -s tests -v
 ```
+
+Current baseline: **292 passed / 1 skipped** (2026-09-17).
 
 ### PowerShell Syntax Check
 
@@ -810,18 +930,23 @@ python3 ./skill/scripts/doctor.py --wait-connected 20
 | **Popup Blocking** | Browsers may block popups or new tabs that websites attempt to open |
 | **Protocol Stability** | Response protocols may change after daemon and extension upgrades, requiring re-testing |
 | **Windows Python** | On Windows, use `py -3` or `py` to start Python; do not assume `python3` command exists |
+| **Capability Tiers** | `0.2.4+` and `fork build` capabilities are absent from a 0.2.3 release — confirm with `bsk <command> --help` first |
+| **Protocol Gates** | `request-help` needs daemon protocol 1.3 and `tab borrow --timeout` needs 1.2; an older daemon fails fast with `unsupported_feature` |
+| **Session Idle Timeout** | Sessions are reaped after 5 minutes idle — never a substitute for an explicit `bsk session stop` |
+| **Rich-Text Editors** | `bsk fill` on `contenteditable` is plain-text replacement and may flatten existing markup |
+| **Closing Instances** | `bsk browsers close` closes **every** window of that instance, is fork-build only, and is not a cleanup command |
 
 ---
 
 ## Roadmap
 
-### Current Version: v1.1.0 (MVR)
+### Current Version: v1.1.0 (2026-09-17)
 
-Released 2026-07-17 — delivered the P0 reliability infrastructure: error classification (`error_codes.py`), structured JSON errors (`error_formatter.py`), input validation (`validator.py`), smart retry (`retry_handler.py`), and timeout management (`timeout_manager.py`). 238 unit tests passing.
+Delivered in two steps: the MVR reliability infrastructure (2026-07-17) — error classification (`error_codes.py`), structured JSON errors (`error_formatter.py`), input validation (`validator.py`), smart retry (`retry_handler.py`), timeout management (`timeout_manager.py`) — and the P0 completion (2026-09-08): session health monitoring (`health_checker.py`) and the graceful fallback chain (`fallback_chain.py`). **292 unit tests passing** (1 skipped).
 
-Skill docs are aligned with **bsk CLI 0.2.3** (released 2026-09-08), daemon protocol 1.3. Commands merged after that tag — `screenshot --full-page`, `wheel`, `scroll-to`, `focus` / `blur`, `session start --name` — are labelled **0.2.4+** in the docs, and the `--browser-id` user-tab commands are labelled **fork build only**; both need a build newer than 0.2.3 and are otherwise simply absent.
+Skill docs are aligned with **bsk CLI 0.2.3** (released 2026-09-08), daemon protocol 1.3. Commands merged after that tag — `screenshot --full-page`, `wheel`, `scroll-to`, `focus` / `blur`, `session start --name` — are labelled **0.2.4+** in the docs, and the `--browser-id` user-tab commands plus `bsk browsers close` are labelled **fork build only**; both need a build newer than 0.2.3 and are otherwise simply absent.
 
-### Next: complete the v1.1.0 roadmap
+### Next: v1.2.0 (planned)
 
 View the complete roadmap with planned features and priorities: [docs/v1.1.0-roadmap.md](docs/v1.1.0-roadmap.md)
 
@@ -829,10 +954,11 @@ View the complete roadmap with planned features and priorities: [docs/v1.1.0-roa
 
 | Priority | Feature Area | Examples |
 |----------|-------------|----------|
-| **P0** | Error Recovery | ✅ Complete: smart retry, structured errors, timeout management, session health monitoring (`health_checker.py`), graceful fallback chain (`fallback_chain.py`) |
 | **P1** | Performance Optimization | Concurrent session management, caching strategies, resource pooling |
-| **P2** | Enhanced Actions | Drag-and-drop upload, file download, keyboard shortcut recording |
+| **P2** | Enhanced Actions | Drag-and-drop upload, file download, keyboard shortcut recording, multi-account profile switching |
 | **P3** | Observability | Structured logging, Prometheus metrics, distributed tracing |
+
+P0 (error recovery) shipped in v1.1.0.
 
 ---
 
@@ -914,9 +1040,10 @@ This project is open-sourced under the [MIT License](LICENSE).
 
 > **Note:** `browserskill-new` serves as the direct base for this Pro edition. It includes:
 > - Windows platform compatibility improvements
-> - Multi-browser instance management
+> - Multi-browser instance management with smart labels
 > - PR-based CI workflow integration
 > - Enhanced error handling and logging
+> - Fork-only capabilities: `bsk invoke` passthrough, Profile Templates, user-tab commands (`tab list|create|select --browser-id`, `tab observe`), and `bsk browsers close`
 
 ### This Edition (Pro Features)
 
@@ -924,11 +1051,13 @@ This project is open-sourced under the [MIT License](LICENSE).
 
 - ✅ Complete multi-platform installation system (Windows PowerShell / Linux Bash / Docker)
 - ✅ Support for 4+ AI Agent environments (CodeBuddy/Claude Code/WorkBuddy/Codex)
-- ✅ Comprehensive documentation (835-line bilingual README)
+- ✅ Bilingual READMEs plus layered docs (`SKILL.md` → `protocol.md` → `operations.md` → 6 capability docs → `how-it-works.md`)
 - ✅ Docker containerization with production orchestration
-- ✅ Layered architecture (SKILL.md → protocol.md → operations.md → how-it-works.md)
+- ✅ **Health and degradation**: `health_checker.py` session health reports, `fallback_chain.py` level-by-level fallback
+- ✅ **Record/replay and network evidence**: `record.sh` / `record.ps1` + `replay.py` (with `--dry-run`), `network.sh` / `network.ps1` with cursor pagination
+- ✅ **Capability tiering**: every command labelled 0.2.3 / 0.2.4+ / fork build so agents never assume a feature is installed
 - ✅ Privacy-focused design with explicit data handling rules
-- ✅ Automated testing and verification tools
+- ✅ Automated testing and verification tools (292 unit tests + PowerShell/Bash syntax checks + `doctor.py`)
 
 ### Supported Platforms
 
