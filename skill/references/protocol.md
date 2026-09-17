@@ -186,6 +186,7 @@ The **Action** column is the name passed to `invoke.sh --action` / `invoke.ps1 -
 | `browsers-tab-observe` | `bsk tab observe --browser-id <id> --tab-id <id> --expected-origin <url>` | Read-only visible text from a user tab (fork build); see [user-tab-control.md](user-tab-control.md) |
 | `browsers-tab-select` | `bsk tab select <tab-id> --browser-id <id>` | Activate a user tab and refocus its window (fork build) |
 | `browsers-tab-create` | `bsk tab create <url> --browser-id <id>` | Open a tab in the user's own window (fork build) |
+| `browsers-close` | `bsk browsers close --browser-id <id> --confirm` | Stop every session of that instance and close all its windows so the browser exits (fork build). Not a cleanup command; success is `disconnected: true`. See [user-tab-control.md](user-tab-control.md) |
 | `session-list` | `bsk session list` | List active sessions |
 | `session-stop-all` | `bsk session stop --all` | Stop every active session (emergency cleanup) |
 | `press` | `bsk press <key>` | Send keyboard events (Enter, Ctrl+A, etc.) |

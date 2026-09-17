@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Synced `bsk browsers close` and refreshed the READMEs (2026-09-18)
+
+`browserskill-new` gained a `browser.close` RPC (`1628377` → `013e017`, 2026-09-17) — the first command that reaches outside a session. Pro now documents it, and the two READMEs were brought up to the 0.2.3 world.
+
+- **SKILL.md**: `bsk browsers close` added to the fork-build tier of the version block and to the capability list, with the rules that matter: exact `instance_id` only, mandatory `--confirm`, it closes every window of that instance, it is not cleanup (`session stop` is), and success is `disconnected: true` — a timeout means the browser is still running.
+- **references/user-tab-control.md**: new "Closing a browser instance" section (flags, confirmation, success/failure semantics, and the `unknown_method` fallback on a 0.2.3 extension). Intro now covers both the 2026-09-14 tab work and the 2026-09-17 close work.
+- **README.md / README_ZH.md**: both still described 1.0.0. Added a **版本兼容 / Version compatibility** table (bsk CLI & extension 0.2.3, daemon protocol 1.3, Python 3.8+, Node/pnpm for source builds) and the three-tier capability table (0.2.3 / 0.2.4+ / fork build); rewrote the feature table around `observe`-first, upload/download, record + replay, health/fallback and instance-level operations; quick start now covers the fork install URL, `bsk --version` parity, `bsk doctor`, and `bsk install-skill --list|--all|--source`; new usage examples (observe, record/replay, network/console, upload/download, full-page screenshot, health_checker/fallback_chain, user tabs + `browsers close`); project tree lists every script; known limits gain the tiering, protocol-gate, idle-timeout, rich-text and close-instance rows; roadmap now reads v1.1.0 shipped / v1.2.0 planned.
+- **protocol.md**: `browsers close` row added to the Additional BrowserSkill Actions table (fork build; success is `disconnected: true`).
+- **CHANGELOG.md**: added the missing **[1.1.0] - 2026-09-17** entry (0.2.3 alignment, capability tiers, six new reference docs, `health_checker.py` + `fallback_chain.py`, deprecations, 292 tests, compatibility matrix) plus this Unreleased section and the version-history / link rows.
+
 ### Aligned with bsk CLI 0.2.3 + post-0.2.3 additions (2026-09-17)
 
 Synced against `browserskill-new` HEAD (`abfea72`, 2026-09-14), which merges Tencent/BrowserSkill through PR #226 / #225 / #237 / #220 / #217 / #211 / #209 / #205 / #224 / #223 plus the fork's own user-scope tab work. Baseline is the 0.2.3 release (2026-09-08); the rest is unreleased.

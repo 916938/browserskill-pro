@@ -21,6 +21,7 @@ Feature availability by CLI version:
 - `bsk upload` / `bsk download`, `observe --probe-hover`, fill validation errors: 0.2.2+
 - `bsk screenshot --full-page`, `bsk wheel`, `bsk scroll-to`, `bsk focus` / `bsk blur`, extension automation settings replacing CLI overrides, `session start --name` with operation audit: **0.2.4+** (merged after the 0.2.3 release; requires a build newer than 2026-09-08)
 - User-scope tab commands (`tab list|select|create --browser-id`, `tab observe`): **fork build only** (`916938/browserskill-new` @ 2026-09-14 or later)
+- `bsk browsers close` (quit a whole browser instance): **fork build only** (`916938/browserskill-new` @ 2026-09-17 or later)
 
 A command in the 0.2.4+/fork tiers is absent from released binaries. Confirm with `bsk <command> --help` before relying on it, and continue with what the installed build supports when it is missing.
 
@@ -134,6 +135,7 @@ Additional BrowserSkill capabilities:
 - `bsk tab observe --browser-id <instance-id> --tab-id <id> --expected-origin <url>` - Read visible text from a user tab read-only: no injection, no CDP, no form/storage/network access (fork build). `--expected-origin` is required and must match the tab's real origin; `--max-chars` caps output (default `4000`, max `8000`).
 - `bsk tab select <tab-id> --browser-id <instance-id> [--expected-origin <url>]` - Activate a user tab and refocus its original window (fork build). Pass the origin to re-verify the tab before it is focused.
 - `bsk tab create --browser-id <instance-id> <url>` - Open a tab in the user's own window instead of the Agent Window (fork build).
+- `bsk browsers close --browser-id <instance-id> --confirm` - Stop every session of that instance, close all its windows, and let the browser process exit (fork build). The only command that reaches outside a session: it closes windows the agent never touched. Never use it as cleanup — `bsk session stop <id>` is cleanup. Only close an instance the user asked to close, and read `bsk browsers` first; labels and prefixes are rejected. Success is `disconnected: true` in `--json` output; a timeout means the browser is still running. There is no matching "open" command — `bsk` never starts browsers.
 - `bsk install-skill --list` / `--harness <id>` / `--all` / `--source <path>` - Install this skill into local agent harnesses; `--source` installs a custom `SKILL.md` and suspends skill auto-update.
 - `bsk daemon start|stop|restart` - Manage the daemon; add `--daemon-idle 2h` or `--session-idle 10m` when starting.
 - `bsk templates list|get|create|update|delete|apply` - Manage Profile Templates (metadata CRUD + controlled apply; never an account backup or credential migration mechanism).
@@ -461,7 +463,7 @@ These are loaded on demand, not with every task:
 | [references/wheel.md](references/wheel.md), [scroll-to.md](references/scroll-to.md) | Scrolling semantics, returned bounds, error codes (0.2.4+) |
 | [references/operation-audit.md](references/operation-audit.md) | What the local audit log records and where it lives (0.2.4+) |
 | [references/sandboxed-agents.md](references/sandboxed-agents.md) | A sandbox reaps background daemons (shared `BSK_HOME` + `BSK_AUTO_START=0`) |
-| [references/user-tab-control.md](references/user-tab-control.md) | Reading and selecting user tabs without borrowing them (fork build) |
+| [references/user-tab-control.md](references/user-tab-control.md) | Reading, selecting, and closing a user's browser instance without borrowing tabs (fork build) |
 | [references/how-it-works.md](references/how-it-works.md) | Human maintainers: architecture and design rationale |
 
 ## Minimal workflows

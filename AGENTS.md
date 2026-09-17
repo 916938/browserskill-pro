@@ -16,7 +16,7 @@ BrowserSkill Pro is an agent skill that wraps the `bsk` CLI with Python/PowerShe
 | `skill/references/scroll-to.md` | Element reveal, visible bounds, error codes (bsk 0.2.4+). |
 | `skill/references/operation-audit.md` | Local audit log scope, storage and retention (bsk 0.2.4+). |
 | `skill/references/sandboxed-agents.md` | Shared daemon (`BSK_HOME` + `BSK_AUTO_START=0`) for sandboxed shells. |
-| `skill/references/user-tab-control.md` | `--browser-id` user tabs and read-only `tab observe` (fork build). |
+| `skill/references/user-tab-control.md` | `--browser-id` user tabs, read-only `tab observe`, and `bsk browsers close` (fork build) |
 | `skill/references/how-it-works.md` | Architecture and design rationale (human-only, high context cost). |
 | `skill/examples/` | End-to-end workflow examples (form fill, scroll, popup, network, record + replay, long screenshot, user tabs). |
 | `skill/scripts/` | Python and shell helpers (`doctor.py`, `snapshot.py`, `screenshot.py`, `wait_for.py`, `invoke.ps1`, `invoke.sh`, `record.ps1`, `record.sh`, `network.ps1`, `network.sh`, `replay.py`). |

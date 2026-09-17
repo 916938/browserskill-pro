@@ -1,6 +1,6 @@
 # User-scope tab control (fork build)
 
-These commands operate on the user's own browser windows — not on the Agent Window and without creating a session. They come from the `916938/browserskill-new` fork (merged 2026-09-14) and are **not** in Tencent/BrowserSkill releases. Verify with `bsk tab <subcommand> --help` before using them.
+These commands operate on the user's own browser windows — not on the Agent Window and without creating a session. They come from the `916938/browserskill-new` fork (tab commands merged 2026-09-14, `browsers close` merged 2026-09-17) and are **not** in Tencent/BrowserSkill releases. Verify with `bsk tab <subcommand> --help` / `bsk browsers close --help` before using them.
 
 ```bash
 bsk browsers                                          # take instance_id from here
@@ -57,6 +57,27 @@ bsk session stop $SESSION_ID
 ```
 
 Return borrowed tabs as soon as the step is done. Whether the borrow asks for confirmation is decided by the extension's **借用标签页前确认 / Confirm before borrowing tabs** setting; `bsk tab borrow --no-confirm` is deprecated and ignored. `bsk tab borrow --timeout <dur>` needs daemon protocol 1.2 and only bounds how long to wait for that confirmation.
+
+## Closing a browser instance
+
+`bsk browsers close` is the one command that reaches outside a session. It stops every session of that instance, closes **all** of its windows, and lets the browser process exit.
+
+```bash
+bsk browsers                                          # take instance_id from here
+bsk browsers close --browser-id 03c3e47f --confirm
+bsk browsers close --browser-id 03c3e47f --confirm --json   # look for "disconnected": true
+```
+
+| Flag | Purpose |
+|---|---|
+| `--browser-id <id>` | Exact `instance_id` from `bsk browsers`; smart labels and prefixes are rejected |
+| `--confirm` | Required acknowledgement — the command refuses to run without it |
+
+- **Not a cleanup command.** Use `bsk session stop <id>` to end your own work. This closes windows the agent never touched and discards anything unsaved in them.
+- Only close an instance the user explicitly asked to close, after the work on it is done. Read `bsk browsers` first; never guess the id.
+- The browser may exit mid-call, so a reply may never arrive. The daemon reports success when the instance has actually left the registry — `disconnected: true` in `--json`. A timeout means the browser is still running.
+- On a 0.2.3 extension the RPC is missing and the daemon answers `unknown_method: browser.close not implemented in extension`. Treat that as "this build cannot do it" and stop the sessions manually instead.
+- `bsk` never starts browsers, so there is no matching "open" command.
 
 ## Privacy
 
