@@ -1,5 +1,17 @@
 # Changelog
 
+### 命令清单改为单一数据源生成（2026-09-19）
+
+同一份"命令事实"原先手工维护在 `SKILL.md`、`protocol.md` 和两份 README 里，漂移反复发生（9-18 刚做过一次大同步）。现改为：
+
+- **`skill/references/command-registry.json`** —— 单一数据源。58 条命令，每条带 `action` / `command` / `cli` / `args` / `tier` / `purpose` / `protocol_purpose` / `blocks`。
+- **`scripts/generate_command_docs.py`** —— 生成器（`--check` 为校验模式，漂移时 exit 1）。只替换 `<!-- BEGIN/END GENERATED: <id> -->` 之间的表格，手写段落（决策树、红线、注意事项）一律不动；零第三方依赖；保留文件原行尾。
+- 四个生成区：`skill-action-map`、`skill-additional`、`protocol-actions`、`protocol-additional`。
+- `command` 是协议形式（无 `--session`），`cli` 是 SKILL.md 的 CLI 形式，两者不同源是因为两份文档的意图不同——一个讲"怎么敲命令"，一个讲"协议长什么样"，单字段无法同时表达。
+- **`tests/test_command_registry.py`**（14 例）：registry schema 校验、action 唯一、每个区块有归属、非法 registry 被拒、生成幂等、CRLF/LF 保留、标记缺失报错、`--check` 能发现漂移且还原后转绿。
+- `AGENTS.md` 新增「Changing a command」流程说明。
+- 全量测试 **306 passed / 1 skipped**（原 292，无回归）。
+
 ## [Unreleased]
 
 ### Synced `bsk browsers close` and refreshed the READMEs (2026-09-18)

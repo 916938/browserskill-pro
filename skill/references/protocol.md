@@ -151,42 +151,38 @@ python3 scripts/wait_for.py --session demo \
 
 The **Action** column is the name passed to `invoke.sh --action` / `invoke.ps1 -Action` (and to `bsk invoke --action`); it maps to a protocol method. The **BrowserSkill Command** column is the equivalent typed `bsk` subcommand. Both reach the same daemon RPC.
 
+<!-- BEGIN GENERATED: protocol-actions — edit command-registry.json, then run ../../scripts/generate_command_docs.py -->
 | Action | BrowserSkill Command | Arguments | Purpose |
 |---|---|---|---|
 | `navigate` | `bsk navigate <url>` | `url`, `wait_until`, `timeout` | Navigate the selected tab. |
 | `tab_create` | `bsk tab create` | `url`, `active`, `index` | Create a new tab in the Agent Window. |
 | `tab_list` | `bsk tab list` | `scope` | List tabs in scope (`user`/`agent`/`all`). No server-side URL filter; match URLs client-side. |
-| `observe` | `bsk observe` | `max_depth`, `max_tokens`, `probe_hover` (0.2.2+) | Read a semantic VOM view: URL, title, text, controls, hover surfaces, and `@e` refs. Preferred first observation. |
+| `observe` | `bsk observe` | `max_depth`, `max_tokens`, `probe_hover`, `(0.2.2+)` | Read a semantic VOM view: URL, title, text, controls, hover surfaces, and `@e` refs. Preferred first observation. |
 | `snapshot` | `bsk snapshot` | none | Read a stricter static accessibility tree with `@e` refs when the semantic view is not enough. |
 | `click` | `bsk click <ref>` | `ref`/`selector` | Click an `@e` ref or CSS selector. |
 | `hover` | `bsk hover <ref>` | `ref`/`selector`, `modifiers`, `settle` | Hover a ref/selector to reveal menus; observe again before acting on revealed items. |
 | `fill` | `bsk fill <ref>` | `ref`/`selector`, `value` | Replace plain text in inputs, textareas, or contenteditable editors; rich-text markup is not preserved. |
 | `evaluate` | `bsk evaluate <code>` | `expression` | Read attributes or perform unsupported page logic. |
 | `screenshot` | `bsk screenshot` | `ref`, `format`, `full_page`, `timeout` | Capture the visible tab, crop to one `@eN` element with `ref`, or stitch the whole page with `full_page` (0.2.4+; see below). |
-| `wheel` | `bsk wheel` | optional `ref`/`selector`, `delta_x`, `delta_y`, `modifiers`, `timeout` | Native mouse-wheel input at the viewport centre or a target (0.2.4+). |
+| `wheel` | `bsk wheel` | `optional ref`/`selector`, `delta_x`, `delta_y`, `modifiers`, `timeout` | Native mouse-wheel input at the viewport centre or a target (0.2.4+). |
 | `scroll_to` | `bsk scroll-to` | `ref`/`selector`, `timeout` | Scroll an element and its frames into view, returning the visible bounds (0.2.4+). |
 | `focus` | `bsk focus` | `ref`/`selector` | Move keyboard focus to an element (0.2.4+). |
 | `blur` | `bsk blur` | `ref`/`selector` | Remove keyboard focus from an element (0.2.4+). |
 | `tab_close` | `bsk tab close <tab-id>` | `tab_id` | Close the selected task-owned tab. |
 | `tab_select` | `bsk tab select <tab-id>` | `tab_id` | Focus an agent tab (e.g. after finding a background tab). |
 | `session_stop` | `bsk session stop <id>` | `session_id` | Close all tabs associated with the session (`--force` in the helper). |
+<!-- END GENERATED: protocol-actions -->
 
 ## Additional BrowserSkill Actions
 
+<!-- BEGIN GENERATED: protocol-additional — edit command-registry.json, then run ../../scripts/generate_command_docs.py -->
 | Action | Command | Purpose |
 |---|---|---|
 | `status` | `bsk status` | Connection health, connected browsers, active sessions |
 | `browsers` | `bsk browsers` | List all connected browser instances (id, name, version, label, sessions) |
 | `session-start-browser` | `bsk session start --browser <id-or-label>` | Target a specific browser when multiple are connected |
-| `session-start-browser-id` | `bsk session start --browser-id <instance-id>` | Same targeting with an exact instance id; never resolves through a label |
+| `session-start-browser-id` | `bsk session start --browser-id <instance-id>` | Same targeting, exact instance id only; never resolves through a label |
 | `session-start-name` | `bsk session start --name "..."` | Label the session in local operation audit (0.2.4+); see [operation-audit.md](operation-audit.md) |
-| `install-skill` | `bsk install-skill --harness <id>` | Install this skill into local agent harnesses; `--list`, `--all`, `--source <path>`, `--force` |
-| `daemon-start` | `bsk daemon start` | Manage the daemon directly; `--daemon-idle 2h`, `--session-idle 10m`, `--foreground` |
-| `browsers-tab-list` | `bsk tab list --browser-id <id> --scope user` | List a browser's user tabs without a session (fork build; `--scope user` is required) |
-| `browsers-tab-observe` | `bsk tab observe --browser-id <id> --tab-id <id> --expected-origin <url>` | Read-only visible text from a user tab (fork build); see [user-tab-control.md](user-tab-control.md) |
-| `browsers-tab-select` | `bsk tab select <tab-id> --browser-id <id>` | Activate a user tab and refocus its window (fork build) |
-| `browsers-tab-create` | `bsk tab create <url> --browser-id <id>` | Open a tab in the user's own window (fork build) |
-| `browsers-close` | `bsk browsers close --browser-id <id> --confirm` | Stop every session of that instance and close all its windows so the browser exits (fork build). Not a cleanup command; success is `disconnected: true`. See [user-tab-control.md](user-tab-control.md) |
 | `session-list` | `bsk session list` | List active sessions |
 | `session-stop-all` | `bsk session stop --all` | Stop every active session (emergency cleanup) |
 | `press` | `bsk press <key>` | Send keyboard events (Enter, Ctrl+A, etc.) |
@@ -203,10 +199,18 @@ The **Action** column is the name passed to `invoke.sh --action` / `invoke.ps1 -
 | `download` | `bsk download <ref> --out <path>` | Capture a browser download (0.2.2+); default-refuses overwrite, pass `--overwrite` to replace |
 | `emulate` | `bsk emulate --device <preset>` | Emulate a mobile device (viewport, UA, touch) on one tab; `--off` restores; new tabs do not inherit |
 | `window-resize` | `bsk window resize --width <w> --height <h>` | Resize the session's Agent Window (100..=7680 CSS px) |
+| `browsers-tab-list` | `bsk tab list --browser-id <id> --scope user` | List a browser's user tabs without a session (fork build; `--scope user` is required) |
+| `browsers-tab-observe` | `bsk tab observe --browser-id <id> --tab-id <id> --expected-origin <url>` | Read-only visible text from a user tab (fork build); see [user-tab-control.md](user-tab-control.md) |
+| `browsers-tab-select` | `bsk tab select <tab-id> --browser-id <id>` | Activate a user tab and refocus its window (fork build) |
+| `browsers-tab-create` | `bsk tab create <url> --browser-id <id>` | Open a tab in the user's own window instead of the Agent Window (fork build). |
+| `browsers-close` | `bsk browsers close --browser-id <id> --confirm` | Stop every session of that instance and close all its windows so the browser exits (fork build). Not a cleanup command; success is `disconnected: true`. See [user-tab-control.md](user-tab-control.md) |
+| `install-skill` | `bsk install-skill --harness <id>` | Install this skill into local agent harnesses; `--list`, `--all`, `--source <path>`, `--force`; `--source` installs a custom `SKILL.md` and suspends skill auto-update. |
+| `daemon-start` | `bsk daemon start` | Manage the daemon directly; `--daemon-idle 2h`, `--session-idle 10m`, `--foreground` |
 | `templates` | `bsk templates list\|get\|create\|update\|delete\|apply` | Profile Template metadata CRUD + controlled apply (never a credential backup mechanism) |
-| `logs` | `bsk logs` | Print (and optionally follow) the daemon log file |
-| `update` | `bsk update` | Check for and install bsk CLI updates |
+| `logs` | `bsk logs` | Print (and optionally follow) the daemon log file. |
+| `update` | `bsk update` | Check for and install bsk CLI updates. |
 | `completion` | `bsk completion <shell>` | Print tab-completion for bash, zsh, fish, or powershell |
+<!-- END GENERATED: protocol-additional -->
 
 `bsk session start` also accepts `--no-focus` (open the Agent Window without stealing focus), `--width`/`--height` (initial Agent Window size, both required together), `--browser-id <instance-id>` (exact instance routing) and `--name "..."` (operation-audit label, 0.2.4+).
 

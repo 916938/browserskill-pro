@@ -83,6 +83,7 @@ The `Action` column is the name you pass to the invoke helpers (`--action` / `-A
 - **With `bsk invoke` (bsk 0.2.0+)**: Helpers forward through `bsk invoke --action <name> --args-json <json>`, which resolves action names to protocol methods (`tab_list` → `tool.tab_list`, `session_stop` → `session.stop`). This avoids host-side JSON parsing and supports complex/nested arguments reliably.
 - **Without `bsk invoke` (legacy)**: Helpers fall back to calling typed `bsk <command>` subcommands directly, flattening JSON arguments into flags. This mode works but may have limitations with non-ASCII or deeply nested JSON.
 
+<!-- BEGIN GENERATED: skill-action-map — edit skill/references/command-registry.json, then run scripts/generate_command_docs.py -->
 | Action | BrowserSkill Command | Use when |
 |---|---|---|
 | `navigate` | `bsk navigate <url> --session <id>` | Open a URL in the selected tab. |
@@ -97,16 +98,23 @@ The `Action` column is the name you pass to the invoke helpers (`--action` / `-A
 | `screenshot` | `bsk screenshot --ref <ref> --out <path> --session <id>` | Capture the page or an element. |
 | `tab_close` | `bsk tab close <tab-id> --session <id>` | Close the selected task-owned tab. |
 | `session_stop` | `bsk session stop <session-id>` | Stop the session and close all associated tabs. |
+<!-- END GENERATED: skill-action-map -->
 
 Additional BrowserSkill capabilities:
+<!-- BEGIN GENERATED: skill-additional — edit skill/references/command-registry.json, then run scripts/generate_command_docs.py -->
+- `bsk wheel --delta-y <px> --session <id>` - Native mouse-wheel event at the viewport centre or an optional target; `--delta-x`, `--modifiers alt,ctrl,meta,shift` (0.2.4+). Dispatch success does not mean the scroll finished.
+- `bsk scroll-to <ref-or-selector> --session <id>` - Scroll an element and its frames into view; returns the visible portion's bounds in viewport CSS pixels (0.2.4+). Partial visibility counts as success.
+- `bsk focus <ref-or-selector> --session <id>` - Move or drop keyboard focus explicitly (0.2.4+).
+- `bsk blur <ref-or-selector> --session <id>` - Move or drop keyboard focus explicitly (0.2.4+).
+- `bsk tab select <tab-id> --session <id>` - Focus an agent tab (e.g. after finding a background tab).
 - `bsk status` - Connection health, connected browsers, active sessions
 - `bsk browsers` - List all connected browser instances
 - `bsk session start --browser <id-or-label>` - Target a specific browser when multiple are connected
 - `bsk session start --browser-id <instance-id>` - Same targeting, exact instance id only; never resolves through a label
 - `bsk session start --name "..."` - Label the session in local operation audit (0.2.4+; see [references/operation-audit.md](references/operation-audit.md))
+- `bsk session start --no-focus` - Open the Agent Window in the background without stealing focus.
 - `bsk session list` - List active sessions
 - `bsk session stop --all` - Stop every active session (emergency cleanup)
-- `bsk tab select <tab-id> --session <id>` - Focus an agent tab (e.g. after finding a background tab)
 - `bsk press <key> --session <id>` - Send keyboard events
 - `bsk select <ref> --value <value> --session <id>` - Select dropdown options
 - `bsk navigate-back --session <id>` - Browser back
@@ -126,22 +134,19 @@ Additional BrowserSkill capabilities:
 - `bsk observe --max-depth <n> --max-tokens <n> --session <id>` - Bound a semantic observation on a large page; the JSON result reports `truncated`.
 - `bsk observe --cursor <cursor> --session <id>` - Continue a truncated observation instead of re-reading the page (0.2.4+). Use your current refs before continuing; it cannot be combined with `--max-depth`, `--probe-hover` or `--debug-surfaces`.
 - `bsk screenshot --ref @eN --session <id>` - Crop to a DOM element **or a Canvas region**; canvas regions appear as `@eN` refs in `observe` (0.2.4+).
-- `bsk session start --no-focus` - Open the Agent Window in the background without stealing focus.
 - `bsk screenshot --full-page --out <path> --session <id>` - Stitch a whole-page PNG (0.2.4+). Exclusive with `--ref`; `--timeout` sets the capture deadline (default `2m`). See [references/long-screenshot.md](references/long-screenshot.md).
-- `bsk scroll-to <ref-or-selector> --session <id>` - Scroll an element and its frames into view; returns the visible portion's bounds in viewport CSS pixels (0.2.4+). Partial visibility counts as success.
-- `bsk wheel --delta-y <px> --session <id>` - Native mouse-wheel event at the viewport centre or an optional target; `--delta-x`, `--modifiers alt,ctrl,meta,shift` (0.2.4+). Dispatch success does not mean the scroll finished.
-- `bsk focus <ref-or-selector> --session <id>` / `bsk blur <ref-or-selector> --session <id>` - Move or drop keyboard focus explicitly (0.2.4+).
 - `bsk tab list --browser-id <instance-id> --scope user` - List a browser's user tabs without starting a session (fork build). Requires `--scope user`.
 - `bsk tab observe --browser-id <instance-id> --tab-id <id> --expected-origin <url>` - Read visible text from a user tab read-only: no injection, no CDP, no form/storage/network access (fork build). `--expected-origin` is required and must match the tab's real origin; `--max-chars` caps output (default `4000`, max `8000`).
 - `bsk tab select <tab-id> --browser-id <instance-id> [--expected-origin <url>]` - Activate a user tab and refocus its original window (fork build). Pass the origin to re-verify the tab before it is focused.
 - `bsk tab create --browser-id <instance-id> <url>` - Open a tab in the user's own window instead of the Agent Window (fork build).
 - `bsk browsers close --browser-id <instance-id> --confirm` - Stop every session of that instance, close all its windows, and let the browser process exit (fork build). The only command that reaches outside a session: it closes windows the agent never touched. Never use it as cleanup — `bsk session stop <id>` is cleanup. Only close an instance the user asked to close, and read `bsk browsers` first; labels and prefixes are rejected. Success is `disconnected: true` in `--json` output; a timeout means the browser is still running. There is no matching "open" command — `bsk` never starts browsers.
-- `bsk install-skill --list` / `--harness <id>` / `--all` / `--source <path>` - Install this skill into local agent harnesses; `--source` installs a custom `SKILL.md` and suspends skill auto-update.
+- `bsk install-skill --list` - Install this skill into local agent harnesses; `--list`, `--all`, `--source <path>`, `--force`; `--source` installs a custom `SKILL.md` and suspends skill auto-update.
 - `bsk daemon start|stop|restart` - Manage the daemon; add `--daemon-idle 2h` or `--session-idle 10m` when starting.
 - `bsk templates list|get|create|update|delete|apply` - Manage Profile Templates (metadata CRUD + controlled apply; never an account backup or credential migration mechanism).
 - `bsk logs` - Print (and optionally follow) the daemon log file.
 - `bsk update` - Check for and install bsk CLI updates.
 - `bsk completion <shell>` - Print a tab-completion script for bash, zsh, fish, or powershell.
+<!-- END GENERATED: skill-additional -->
 
 ## Use helpers
 

@@ -17,6 +17,7 @@ BrowserSkill Pro is an agent skill that wraps the `bsk` CLI with Python/PowerShe
 | `skill/references/operation-audit.md` | Local audit log scope, storage and retention (bsk 0.2.4+). |
 | `skill/references/sandboxed-agents.md` | Shared daemon (`BSK_HOME` + `BSK_AUTO_START=0`) for sandboxed shells. |
 | `skill/references/user-tab-control.md` | `--browser-id` user tabs, read-only `tab observe`, and `bsk browsers close` (fork build) |
+| `skill/references/command-registry.json` | **Single source of truth for the command tables** in `SKILL.md` and `protocol.md`. |
 | `skill/references/how-it-works.md` | Architecture and design rationale (human-only, high context cost). |
 | `skill/examples/` | End-to-end workflow examples (form fill, scroll, popup, network, record + replay, long screenshot, user tabs). |
 | `skill/scripts/` | Python and shell helpers (`doctor.py`, `snapshot.py`, `screenshot.py`, `wait_for.py`, `invoke.ps1`, `invoke.sh`, `record.ps1`, `record.sh`, `network.ps1`, `network.sh`, `replay.py`). |
@@ -30,6 +31,28 @@ BrowserSkill Pro is an agent skill that wraps the `bsk` CLI with Python/PowerShe
 ```bash
 python -m unittest discover -s tests -v
 ```
+
+### Changing a command (do this, not a direct doc edit)
+
+The command tables in `skill/SKILL.md` and `skill/references/protocol.md` are
+generated from `skill/references/command-registry.json`. Edit the registry, then:
+
+```bash
+python3 scripts/generate_command_docs.py            # rewrite the marked blocks
+python3 scripts/generate_command_docs.py --check    # verify; exit 1 on drift
+```
+
+Rules:
+
+- Each action declares `blocks` — which generated region(s) it belongs to
+  (`skill-action-map`, `skill-additional`, `protocol-actions`, `protocol-additional`).
+- `command` is the protocol form (no `--session`); `cli` is the CLI form used by
+  SKILL.md (defaults to `command`). `protocol_purpose` overrides `purpose` in
+  protocol.md (defaults to `purpose`).
+- `tier` must be one of `0.2.3` / `0.2.4+` / `fork`.
+- Only text between `<!-- BEGIN GENERATED: … -->` and `<!-- END GENERATED: … -->`
+  is replaced. Prose outside the markers is hand-written — never let the
+  generator own it.
 
 ### Lint scripts
 
