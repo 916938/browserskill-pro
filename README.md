@@ -9,7 +9,7 @@
 [![Agent Skill](https://img.shields.io/badge/Agent-Skill-black.svg)](skill/SKILL.md)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg)](#quick-start)
 [![Version](https://img.shields.io/badge/Version-v1.1.0-green.svg)](CHANGELOG.md)
-[![bsk](https://img.shields.io/badge/bsk-0.2.3+-orange.svg)](https://github.com/916938/browserskill-new)
+[![bsk](https://img.shields.io/badge/bsk-0.4.0%2B%20fork-orange.svg)](https://github.com/916938/browserskill-new)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 </div>
@@ -43,7 +43,13 @@ BrowserSkill Pro is a standalone Agent Skill that controls users' **real, authen
 
 As long as an Agent can read Agent Skill instructions and execute local shell commands, it can use the core workflow. This repository additionally provides OpenAI/Codex metadata, but core protocol and operation instructions do not depend on any specific Agent product.
 
-**Aligned bsk version**: CLI and extension **0.2.3** (daemon protocol **1.3**). Since 0.2.2 the CLI, extension and DSH plugin share one semver — upgrade all three together, because a mismatch fails with exit code 5.
+**Aligned bsk version**: CLI and extension **0.4.0** (daemon protocol **1.3**). Since 0.2.2 the CLI, extension and DSH plugin share one semver — upgrade all three together, because a mismatch fails with exit code 5.
+
+> ⚠️ **This skill requires the fork build** — [`916938/browserskill-new`](https://github.com/916938/browserskill-new), not upstream
+> [`Tencent/BrowserSkill`](https://github.com/Tencent/BrowserSkill). Upstream releases do **not** work: several commands this
+> skill documents exist only in the fork (`browsers close`, `--browser-id` tab management, `tab observe`, `invoke`,
+> `templates`, `completion`). The fork keeps its own version line, always numbered above the upstream release it last synced
+> (upstream 0.3.0 → fork 0.4.0), so the version alone tells you which distribution you are running.
 
 ### ⚠️ Project Origin & Disclaimer
 
@@ -135,8 +141,8 @@ Local AI Agent (CodeBuddy / Claude Code / WorkBuddy / Codex)
 
 | Component | Minimum | Recommended | Notes |
 |-----------|---------|-------------|-------|
-| bsk CLI | 0.1.0 | **0.2.3** | Below 0.2.0 the helpers fall back to legacy (typed subcommand) mode |
-| Browser extension | 0.1.0 | **0.2.3** (must match the CLI) | A CLI/extension mismatch surfaces as exit code 5 |
+| bsk CLI | 0.1.0 | **0.4.0** (fork build) | Below 0.2.0 the helpers fall back to legacy (typed subcommand) mode |
+| Browser extension | 0.1.0 | **0.4.0** (fork build, must match the CLI) | A CLI/extension mismatch surfaces as exit code 5 |
 | Daemon protocol | 1.2 | **1.3** | `request-help` needs 1.3; `tab borrow --timeout` needs 1.2 |
 | Python | 3.8+ | 3.12+ | Helpers only; no third-party dependencies |
 | Node.js / pnpm | 18+ / 9.x | 20 LTS / 10.17.0 | Only needed to build the extension from source |
@@ -147,9 +153,12 @@ Capabilities ship in **three tiers**, and both this README and `skill/SKILL.md` 
 |------|---------|----------|
 | **0.2.3** | Released baseline (2026-09-08) | `observe`, `snapshot`, borrow/return, `request-help`, `record`, `network` / `console`, `upload` / `download`, `emulate`, `templates` |
 | **0.2.4+** | Merged after the 0.2.3 tag; needs a build newer than 2026-09-08 | `screenshot --full-page`, `wheel`, `scroll-to`, `focus` / `blur`, `session start --name` with operation audit |
-| **Fork build** | `916938/browserskill-new` only, absent from upstream releases | `tab list\|create\|select --browser-id`, `tab observe`, `browsers close` |
+| **Fork build** | `916938/browserskill-new` only, absent from upstream releases | `tab list\|create\|select --browser-id`, `tab observe`, `browsers close`, `invoke`, `templates`, `completion`, `since last_action`, profile account id, smart labels |
 
-> 0.2.4+ and fork-build capabilities are not in released binaries. Confirm with `bsk <command> --help` before relying on one, and continue with what the installed build supports when it is missing.
+> The fork's **0.4.0** build already contains the 0.2.3 baseline and the 0.2.4+ tier, so installing the fork gets you all
+> three tiers at once — except that upstream's remote/server mode, which the fork carries but does **not** support, is never
+> a capability here. For anything in the 0.2.4+/fork tiers on an older build, confirm with `bsk <command> --help` before
+> relying on it, and continue with what the installed build supports when it is missing.
 
 ---
 

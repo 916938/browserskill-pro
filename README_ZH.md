@@ -9,7 +9,7 @@
 [![Agent Skill](https://img.shields.io/badge/Agent-Skill-black.svg)](skill/SKILL.md)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg)](#快速开始)
 [![Version](https://img.shields.io/badge/Version-v1.1.0-green.svg)](CHANGELOG.md)
-[![bsk](https://img.shields.io/badge/bsk-0.2.3+-orange.svg)](https://github.com/916938/browserskill-new)
+[![bsk](https://img.shields.io/badge/bsk-0.4.0%2B%20fork-orange.svg)](https://github.com/916938/browserskill-new)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 </div>
@@ -43,7 +43,12 @@ BrowserSkill Pro 是一个独立的 Agent Skill，通过本机 **BrowserSkill da
 
 只要 Agent 能读取 Agent Skill 指令，并能执行本地 shell 命令，就可以使用核心工作流。本项目额外提供 OpenAI/Codex 元数据，但核心协议和操作说明不依赖某个特定 Agent 产品。
 
-**当前对齐的 bsk 版本**：CLI 与浏览器扩展 **0.2.3**（daemon 协议 **1.3**）。自 0.2.2 起 CLI / 扩展 / DSH 插件共用同一 semver，升级时三者需同步，版本不一致会直接触发退出码 5。
+**当前对齐的 bsk 版本**：CLI 与浏览器扩展 **0.4.0**（daemon 协议 **1.3**）。自 0.2.2 起 CLI / 扩展 / DSH 插件共用同一 semver，升级时三者需同步，版本不一致会直接触发退出码 5。
+
+> ⚠️ **本 skill 依赖 fork 构建** —— [`916938/browserskill-new`](https://github.com/916938/browserskill-new)，**不是**上游
+> [`Tencent/BrowserSkill`](https://github.com/Tencent/BrowserSkill)。上游发布版**跑不起来**：本 skill 记录的若干命令只存在于
+> fork（`browsers close`、`--browser-id` 系列 tab 管理、`tab observe`、`invoke`、`templates`、`completion`）。
+> fork 使用独立版本线，号码始终高于最后一次同步的上游版本（上游 0.3.0 → fork 0.4.0），单看版本号即可分辨是哪个发行版。
 
 ### ⚠️ 项目来源与免责声明
 
@@ -135,8 +140,8 @@ Local AI Agent (CodeBuddy / Claude Code / WorkBuddy / Codex)
 
 | 组件 | 最低 | 推荐 | 说明 |
 |------|------|------|------|
-| bsk CLI | 0.1.0 | **0.2.3** | 低于 0.2.0 时 helper 自动回退到 legacy（直连子命令）模式 |
-| 浏览器扩展 | 0.1.0 | **0.2.3**（须与 CLI 同版本） | CLI 与扩展版本不一致 → 退出码 5 |
+| bsk CLI | 0.1.0 | **0.4.0**（fork 构建） | 低于 0.2.0 时 helper 自动回退到 legacy（直连子命令）模式 |
+| 浏览器扩展 | 0.1.0 | **0.4.0**（fork 构建，须与 CLI 同版本） | CLI 与扩展版本不一致 → 退出码 5 |
 | daemon 协议 | 1.2 | **1.3** | `request-help` 需要 1.3；`tab borrow --timeout` 需要 1.2 |
 | Python | 3.8+ | 3.12+ | 仅 helper 脚本需要，零第三方依赖 |
 | Node.js / pnpm | 18+ / 9.x | 20 LTS / 10.17.0 | 仅从源码构建扩展时需要 |
@@ -147,9 +152,11 @@ Local AI Agent (CodeBuddy / Claude Code / WorkBuddy / Codex)
 |------|------|---------|
 | **0.2.3** | 已发布基线（2026-09-08） | `observe`、`snapshot`、borrow/return、`request-help`、`record`、`network` / `console`、`upload` / `download`、`emulate`、`templates` |
 | **0.2.4+** | 0.2.3 之后合入，需 2026-09-08 之后的构建 | `screenshot --full-page`、`wheel`、`scroll-to`、`focus` / `blur`、`session start --name` 与本地操作审计 |
-| **fork 构建** | 仅 `916938/browserskill-new`，上游发布版没有 | `tab list\|create\|select --browser-id`、`tab observe`、`browsers close` |
+| **fork 构建** | 仅 `916938/browserskill-new`，上游发布版没有 | `tab list\|create\|select --browser-id`、`tab observe`、`browsers close`、`invoke`、`templates`、`completion`、`--since last_action`、profile account id、smart labels |
 
-> 0.2.4+ 与 fork 构建的能力不会出现在已发布二进制里。使用前先跑 `bsk <命令> --help` 确认；缺失就用当前构建支持的方式继续。
+> fork 的 **0.4.0** 构建已同时包含 0.2.3 基线与 0.2.4+ 层级，装 fork 就一次拿到三层 —— 唯一例外是上游的 remote/server 模式：
+> fork 虽携带该代码但**不支持**，在这里永远不算能力。若在更旧的构建上用到 0.2.4+ / fork 层级的能力，先跑 `bsk <命令> --help`
+> 确认；缺失就用当前构建支持的方式继续。
 
 ---
 

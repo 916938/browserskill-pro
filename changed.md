@@ -1,5 +1,15 @@
 # Changelog
 
+### 声明依赖 fork 构建，并跟进 fork 0.4.0 版本线（2026-09-19）
+
+`browserskill-new` 已明确定位为 **soft fork（下游发行版）**，版本线独立：号码始终高于最后一次同步的上游版本（上游 0.3.0 → fork **0.4.0**）。Pro 侧同步：
+
+- **两份 README + `skill/SKILL.md` 新增显式声明**：本 skill 依赖 `916938/browserskill-new` 的 fork 构建，**上游 `Tencent/BrowserSkill` 发布版跑不起来** —— 本 skill 记录的 `browsers close`、`--browser-id` 系列 tab 管理、`tab observe`、`invoke`、`templates`、`completion` 只存在于 fork。
+- 版本推荐值 0.2.3 → **0.4.0**（badge、版本兼容表、SKILL.md 版本块）。
+- **fork 层级能力清单补全**：在原来 3 条基础上补 `invoke`、`templates`、`completion`、`--since last_action`、profile account id、smart labels。
+- 新增说明：fork 的 0.4.0 已同时包含 0.2.3 基线与 0.2.4+ 层级；**唯一例外是上游 remote/server 模式 —— fork 携带但不支持，不算能力**。
+- 只改手写段落，未触碰 `<!-- BEGIN/END GENERATED -->` 区块；`generate_command_docs.py --check` 仍通过。
+
 ### 命令清单改为单一数据源生成（2026-09-19）
 
 同一份"命令事实"原先手工维护在 `SKILL.md`、`protocol.md` 和两份 README 里，漂移反复发生（9-18 刚做过一次大同步）。现改为：
