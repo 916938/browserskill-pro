@@ -243,7 +243,7 @@ Every command now carries its availability tier, instead of implying one version
 
 ## v1.0.0 — 2026-06-20
 
-First formal release of BrowserSkill Pro as an agent-neutral browser-control skill.
+First formal release of ZenX Bridge Skill as an agent-neutral browser-control skill.
 
 ### Added
 

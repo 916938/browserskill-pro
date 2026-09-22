@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Session health monitoring and auto-recovery for BrowserSkill Pro v1.1.0
+Session health monitoring and auto-recovery for ZenX Bridge Skill v1.1.0
 
 Proactive session health assessment built on `bsk status --json`:
 - Daemon / extension connectivity (no connected browser, daemon unreachable)

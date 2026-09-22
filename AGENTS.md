@@ -2,7 +2,7 @@
 
 ## What is this
 
-BrowserSkill Pro is an agent skill that wraps the `bsk` CLI with Python/PowerShell helpers, examples, and layered documentation. It does not contain the CLI or extension source — those live in the [BrowserSkill repo](https://github.com/Tencent/BrowserSkill).
+ZenX Bridge Skill is an agent skill that wraps the `bsk` CLI with Python/PowerShell helpers, examples, and layered documentation. It does not contain the CLI or extension source — those live in the [BrowserSkill repo](https://github.com/Tencent/BrowserSkill).
 
 ## Structure
 

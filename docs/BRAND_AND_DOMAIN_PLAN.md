@@ -21,7 +21,7 @@
 本产品源自 `Tencent/BrowserSkill`（MIT）。当前对外仍以 **BrowserSkill** 名称出现，存在两类问题：
 
 1. **商标风险**：`BrowserSkill` 是上游的产品名称，继续使用既是商标问题，也会让用户误以为是官方版本。
-2. **定位失真**：`browserskill-new` / `browserskill-pro` 这一组名字暗示"基础版 / 高级版"，但二者实际是**能力层与使用层的互补关系**，不是高低配。
+2. **定位失真**：`browserskill-new` / `zenx-bridge-skill` 这一组名字暗示"基础版 / 高级版"，但二者实际是**能力层与使用层的互补关系**，不是高低配。
 
 同时，品牌名、域名、付费内容体系需要统一规划，否则后续每次新增组件都要重新决策一次。
 
@@ -312,14 +312,21 @@ v19 清单中"计划新注"包含 **`browserskillhub.com`（浏览器技能枢�
 
 **选择判据**：**先用方案 A**（`zenx.tech` 已持有，零成本）；若【A3】付费体系确认 Bridge/Skill 将作为独立产品线对外售卖，再升级方案 B，并按 v19 规则走"计划新注"。
 
-### 4.7 代码托管与更新源（与域名解耦）
+### 4.7 代码托管与更新源（P3 已执行，2026-09-23）
 
-| 项 | 现在 | 改名后 | 风险与处理 |
+| 项 | 旧 | 新 | 说明 |
 |---|---|---|---|
-| 仓库 | `916938/browserskill-new` | `916938/zenx-bridge` | GitHub 对改名仓库自动重定向，旧链接不断 |
-| 更新源 | `update.rs` → `.../browserskill-new/releases/...` | 改为 `zenx-bridge` | **已安装的旧二进制走旧 URL，靠重定向兜底**；改名后必须实测 `bsk update` |
-| 安装脚本 | `install.sh` / `install.ps1` 硬编码仓库路径 | 同步改 | 同上 |
-| 文档链接 | 三仓 README / SKILL.md 内的 URL | 统一改为 `bridge.zenx.tech` | 减少硬编码 |
+| 仓库（能力层） | `916938/browserskill-new` | **`916938/zenx-bridge`** | GitHub 改名，旧链接由官方重定向兜底 |
+| 仓库（使用层） | `916938/zenx-bridge-skill` | **`916938/zenx-bridge-skill`** | 同上 |
+| 更新源（`update.rs`） | `.../browserskill-new/releases/latest/download/version.json` | `.../zenx-bridge/...` | 旧二进制走旧 URL → 重定向 → 仍可取到 |
+| 安装入口 | `raw.githubusercontent.com/916938/browserskill-new/...` | `.../zenx-bridge/...` | 同上 |
+| 文档链接 | 三仓 README / SKILL.md 内 URL | 统一改为新路径 | 已替换 |
+
+**已验证**：新仓库 API 与文件内容均可访问；旧仓库名经重定向仍可访问（更新链不断）。
+
+**未改（有意保留）**：`CHANGELOG.md`、`MERGE_REVIEW.md`、`RELEASE_NOTES_*`、`UPGRADE_MERGE_SUMMARY.md`、`TEST_REPORT_*`、`docs/BRANCH_CLEANUP_ARCHIVE_*` 中的历史链接——它们记录各自时点的事实，且旧 URL 会被重定向。
+
+**备注**：早期曾考虑"封存旧库 + 新建库"，最终采用**改名**，原因是改名为 GitHub 官方支持的重定向机制，可保住已安装二进制的自动更新链；新建库会让旧二进制永远指向旧库而收不到更新。
 
 ### 4.8 域名执行步骤
 

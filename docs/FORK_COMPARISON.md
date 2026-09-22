@@ -34,7 +34,7 @@ Tencent/BrowserSkill（上游，MIT）
 browserskill-new  ── 能力层：bsk CLI + daemon + 扩展（0.4.0）
         │  依赖其 fork 专属能力
         ▼
-browserskill-pro  ── 使用层：SKILL.md + 命令注册表 + 脚本 + 示例（v1.1.0）
+zenx-bridge-skill  ── 使用层：SKILL.md + 命令注册表 + 脚本 + 示例（v1.1.0）
         │
         ▼
      AI Agent / 终端用户
@@ -80,7 +80,7 @@ browserskill-pro  ── 使用层：SKILL.md + 命令注册表 + 脚本 + 示�
 | 文档结构 | `docs/` + `skill/SKILL.md` | new：`docs/` 含同步策略与不变量清单；pro：`skill/`（65 文件）+ `references`(10) + `examples`(7) + `scripts`(20) | **优势**（更厚的使用层文档） |
 | 命令事实管理 | 分散在文档与代码中 | pro：**单一数据源** `command-registry.json`（56 条）+ 生成器 + `--check` 漂移校验 | **优势**（防漂移） |
 
-**【代码事实】** `browserskill-pro` 的注册表按能力分层：0.2.3 基线 43 条 / 0.2.4+ 8 条 / fork 专属 5 条；生成区块 4 个（`skill-action-map` 12、`skill-additional` 44、`protocol-actions` 17、`protocol-additional` 32）。
+**【代码事实】** `zenx-bridge-skill` 的注册表按能力分层：0.2.3 基线 43 条 / 0.2.4+ 8 条 / fork 专属 5 条；生成区块 4 个（`skill-action-map` 12、`skill-additional` 44、`protocol-actions` 17、`protocol-additional` 32）。
 
 ### 2.3 性能表现
 
@@ -255,7 +255,7 @@ git diff --stat $(git merge-base Tencent/main main) main -- crates/bsk-cli/src/c
 cargo test --workspace --locked --no-fail-fast
 pnpm --filter @browser-skill/extension compile
 pnpm ext:test
-python -m unittest discover -s tests        # 在 browserskill-pro 下
+python -m unittest discover -s tests        # 在 zenx-bridge-skill 下
 ```
 
 ## 附录 B：本文引用的实测数据来源

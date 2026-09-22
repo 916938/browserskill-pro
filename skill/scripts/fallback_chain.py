@@ -1,5 +1,5 @@
 """
-Graceful degradation fallback chain for BrowserSkill Pro v1.1.0
+Graceful degradation fallback chain for ZenX Bridge Skill v1.1.0
 
 Multi-level execution with automatic degradation and decision logging:
 

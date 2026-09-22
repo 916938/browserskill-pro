@@ -2,7 +2,7 @@
 
 **[English](README.md) | 简体中文**
 
-# BrowserSkill Pro
+# ZenX Bridge Skill
 
 **面向本地 AI Agent 的真实浏览器控制 Skill，强调隐私最小化和标签页安全**
 
@@ -39,7 +39,7 @@
 
 ## 简介
 
-BrowserSkill Pro 是一个独立的 Agent Skill，通过本机 **BrowserSkill daemon** 控制用户**真实、已登录**的浏览器。
+ZenX Bridge Skill 是一个独立的 Agent Skill，通过本机 **BrowserSkill daemon** 控制用户**真实、已登录**的浏览器。
 
 只要 Agent 能读取 Agent Skill 指令，并能执行本地 shell 命令，就可以使用核心工作流。本项目额外提供 OpenAI/Codex 元数据，但核心协议和操作说明不依赖某个特定 Agent 产品。
 
@@ -219,7 +219,7 @@ bsk install-skill --source <path>   # 安装自定义 SKILL.md（会暂停 skill
 
 ```text
 <agent-skills-directory>/
-└── browserskill-pro/
+└── zenx-bridge-skill/
     ├── SKILL.md          # 核心 Agent 指令
     ├── scripts/          # Python/Bash/PowerShell helpers
     ├── examples/         # 工作流样例
@@ -230,12 +230,12 @@ bsk install-skill --source <path>   # 安装自定义 SKILL.md（会暂停 skill
 
 **Windows：**
 ```powershell
-py -3 <your-path>\browserskill-pro\scripts\doctor.py --wait-connected 20
+py -3 <your-path>\zenx-bridge-skill\scripts\doctor.py --wait-connected 20
 ```
 
 **Linux / macOS：**
 ```bash
-python3 <your-path>/browserskill-pro/scripts/doctor.py --wait-connected 20
+python3 <your-path>/zenx-bridge-skill/scripts/doctor.py --wait-connected 20
 ```
 
 预期输出：
@@ -256,15 +256,15 @@ python3 <your-path>/browserskill-pro/scripts/doctor.py --wait-connected 20
 在 Agent 对话框中输入：
 
 ```text
-使用 $browserskill-pro 查看我当前登录的网页
+使用 $zenx-bridge-skill 查看我当前登录的网页
 ```
 
 ```text
-使用 $browserskill-pro 在知乎页面搜索 OpenAI
+使用 $zenx-bridge-skill 在知乎页面搜索 OpenAI
 ```
 
 ```text
-使用 $browserskill-pro 截取当前页面，并在完成后删除临时文件
+使用 $zenx-bridge-skill 截取当前页面，并在完成后删除临时文件
 ```
 
 ---
@@ -280,11 +280,11 @@ python3 <your-path>/browserskill-pro/scripts/doctor.py --wait-connected 20
 git clone https://github.com/916938/zenx-bridge-skill.git %TEMP%\bsk-install
 
 # 2. 复制到目标路径（根据你的 Agent 环境选择）
-$target = "$env:USERPROFILE\.codebuddy\skills\browserskill-pro"     # CodeBuddy
-# $target = "$env:USERPROFILE\.workbuddy\skills\browserskill-pro"   # WorkBuddy
-# $target = "$env:USERPROFILE\.claude\skills\browserskill-pro"      # Claude Code (Skills)
-# $target = "$env:USERPROFILE\.claude\commands\browserskill-pro"    # Claude Code (Commands)
-# $target = "$env:USERPROFILE\.codex\skills\browserskill-pro"        # Codex
+$target = "$env:USERPROFILE\.codebuddy\skills\zenx-bridge-skill"     # CodeBuddy
+# $target = "$env:USERPROFILE\.workbuddy\skills\zenx-bridge-skill"   # WorkBuddy
+# $target = "$env:USERPROFILE\.claude\skills\zenx-bridge-skill"      # Claude Code (Skills)
+# $target = "$env:USERPROFILE\.claude\commands\zenx-bridge-skill"    # Claude Code (Commands)
+# $target = "$env:USERPROFILE\.codex\skills\zenx-bridge-skill"        # Codex
 
 New-Item -ItemType Directory -Path $target -Force | Out-Null
 Copy-Item "%TEMP%\bsk-install\skill\*" -Destination $target -Recurse -Force
@@ -345,11 +345,11 @@ TMPDIR=$(mktemp -d)
 git clone https://github.com/916938/zenx-bridge-skill.git "$TMPDIR/bsk"
 
 # 2. 选择目标路径（根据你的 Agent 环境）
-TARGET="$HOME/.codebuddy/skills/browserskill-pro"           # CodeBuddy
-# TARGET="$HOME/.workbuddy/skills/browserskill-pro"         # WorkBuddy
-# TARGET="$HOME/.claude/skills/browserskill-pro"            # Claude Code (Skills)
-# TARGET="$HOME/.claude/commands/browserskill-pro"          # Claude Code (Commands)
-# TARGET="$HOME/.codex/skills/browserskill-pro"             # Codex
+TARGET="$HOME/.codebuddy/skills/zenx-bridge-skill"           # CodeBuddy
+# TARGET="$HOME/.workbuddy/skills/zenx-bridge-skill"         # WorkBuddy
+# TARGET="$HOME/.claude/skills/zenx-bridge-skill"            # Claude Code (Skills)
+# TARGET="$HOME/.claude/commands/zenx-bridge-skill"          # Claude Code (Commands)
+# TARGET="$HOME/.codex/skills/zenx-bridge-skill"             # Codex
 
 # 3. 复制文件
 mkdir -p "$(dirname "$TARGET")"
@@ -383,11 +383,11 @@ chmod +x install.sh
 ```bash
 # 1. 下载并解压
 cd ~/Downloads
-unzip browserskill-pro-main.zip -d /tmp/bsk-install
+unzip zenx-bridge-skill-main.zip -d /tmp/bsk-install
 
 # 2. 复制文件
-ZIP_EXTRACT="/tmp/bsk-install/browserskill-pro-main"
-TARGET="$HOME/.codebuddy/skills/browserskill-pro"
+ZIP_EXTRACT="/tmp/bsk-install/zenx-bridge-skill-main"
+TARGET="$HOME/.codebuddy/skills/zenx-bridge-skill"
 mkdir -p "$(dirname "$TARGET")"
 cp -r "$ZIP_EXTRACT/skill/." "$TARGET"
 
@@ -413,18 +413,18 @@ docker compose version  # Docker Compose V2+
 ```bash
 # 1. 构建镜像
 git clone https://github.com/916938/zenx-bridge-skill.git
-cd browserskill-pro
-docker build -t browserskill-pro:latest .
+cd zenx-bridge-skill
+docker build -t zenx-bridge-skill:latest .
 
 # 2. 运行自检（需连接宿主机上的 bsk daemon）
 docker run --rm \
   --network host \
   -v ~/.bsk:/app/.bsk:ro \
-  browserskill-pro:latest python3 skill/scripts/doctor.py --wait-connected 20
+  zenx-bridge-skill:latest python3 skill/scripts/doctor.py --wait-connected 20
 
 # 3. 执行 snapshot 示例
 docker run --rm --network host \
-  browserskill-pro:latest python3 skill/scripts/snapshot.py --session demo --auto
+  zenx-bridge-skill:latest python3 skill/scripts/snapshot.py --session demo --auto
 ```
 
 **常用参数：**
@@ -446,7 +446,7 @@ docker run --rm --network host \
 docker compose up -d
 
 # 仅启动核心服务（不含监控）
-docker compose up -d bsk-daemon browserskill-pro redis chrome-browser
+docker compose up -d bsk-daemon zenx-bridge-skill redis chrome-browser
 
 # 启动开发环境（源代码热挂载）
 docker compose -f docker-compose.dev.yml up --build -d
@@ -465,7 +465,7 @@ docker compose --profile monitoring up -d
 │                   Docker Network (172.28.0.0/16)            │
 │                                                             │
 │  ┌──────────────┐    ┌─────────────────┐    ┌──────────┐   │
-│  │ bsk-daemon   │◄──►│browserskill-pro │◄──►│  chrome  │   │
+│  │ bsk-daemon   │◄──►│zenx-bridge-skill │◄──►│  chrome  │   │
 │  │ (WebSocket)  │    │ (Skill + Helpers)│    │(Browser) │   │
 │  │ :52800       │    │                 │    │ :9222    │   │
 │  └──────┬───────┘    └────────┬────────┘    └──────────┘   │
@@ -506,7 +506,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       bsk-daemon:
-        image: browserskill/bsk-daemon:latest
+        image: zenxbridge/bsk-daemon:latest
         ports:
           - 52800:52800
         options: >-
@@ -518,8 +518,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build & Test
         run: |
-          docker build -t browserskill-pro:test .
-          docker run --rm --network host browserskill-pro:test \
+          docker build -t zenx-bridge-skill:test .
+          docker run --rm --network host zenx-bridge-skill:test \
             python3 -m unittest discover -s tests -v
 ```
 
@@ -533,7 +533,7 @@ jobs:
 
 ```yaml
 services:
-  browserskill-pro:
+  zenx-bridge-skill:
     security_opt:
       - no-new-privileges:true
     read_only: true
@@ -562,15 +562,15 @@ services:
 
 ```bash
 # 多平台构建
-docker buildx build --platform linux/amd64,linux/arm64 -t browserskill-pro:latest .
+docker buildx build --platform linux/amd64,linux/arm64 -t zenx-bridge-skill:latest .
 
 # 推送到仓库
-docker tag browserskill-pro:latest ghcr.io/916938/zenx-bridge-skill:v1.0.0
+docker tag zenx-bridge-skill:latest ghcr.io/916938/zenx-bridge-skill:v1.0.0
 docker push ghcr.io/916938/zenx-bridge-skill:v1.0.0
 
 # 导出/导入（离线环境）
-docker save -o browserskill-pro.tar browserskill-pro:latest
-docker load -i browserskill-pro.tar
+docker save -o zenx-bridge-skill.tar zenx-bridge-skill:latest
+docker load -i zenx-bridge-skill.tar
 ```
 
 ---
@@ -581,10 +581,10 @@ docker load -i browserskill-pro.tar
 
 | Agent 平台 | Skills 路径 | Commands 路径 | 备注 |
 |-----------|------------|---------------|------|
-| **CodeBuddy** | `~/.codebuddy/skills/browserskill-pro` | - | 主要支持平台 |
-| **Claude Code** | `~/.claude/skills/browserskill-pro` | `~/.claude/commands/browserskill-pro` | 双模式支持（推荐 Skills） |
-| **WorkBuddy** | `~/.workbuddy/skills/browserskill-pro` | - | 企业级 Agent |
-| **Codex** | `~/.codex/skills/browserskill-pro` | - | OpenAI 编程助手 |
+| **CodeBuddy** | `~/.codebuddy/skills/zenx-bridge-skill` | - | 主要支持平台 |
+| **Claude Code** | `~/.claude/skills/zenx-bridge-skill` | `~/.claude/commands/zenx-bridge-skill` | 双模式支持（推荐 Skills） |
+| **WorkBuddy** | `~/.workbuddy/skills/zenx-bridge-skill` | - | 企业级 Agent |
+| **Codex** | `~/.codex/skills/zenx-bridge-skill` | - | OpenAI 编程助手 |
 
 ### 自动检测优先级
 
@@ -596,7 +596,7 @@ docker load -i browserskill-pro.tar
 ```bash
 # Linux/macOS
 CODEBUDDY_SKILLS_DIR=/custom/path ./install.sh
-./install.sh --target-path "$HOME/.my-agent/skills/browserskill-pro"
+./install.sh --target-path "$HOME/.my-agent/skills/zenx-bridge-skill"
 
 # Windows
 $env:CODEBUDDY_SKILLS_DIR="C:\Custom\Path"
@@ -607,10 +607,10 @@ $env:CODEBUDDY_SKILLS_DIR="C:\Custom\Path"
 
 ```bash
 # Linux/macOS
-rm -rf ~/.codebuddy/skills/browserskill-pro
+rm -rf ~/.codebuddy/skills/zenx-bridge-skill
 
 # PowerShell
-Remove-Item -Recurse -Force "$env:USERPROFILE\.codebuddy\skills\browserskill-pro"
+Remove-Item -Recurse -Force "$env:USERPROFILE\.codebuddy\skills\zenx-bridge-skill"
 ```
 
 ---
@@ -798,7 +798,7 @@ BrowserSkill daemon 和浏览器扩展是外部依赖，其数据处理行为不
 ## 项目结构
 
 ```text
-browserskill-pro/
+zenx-bridge-skill/
 ├── README.md                           # 本文档
 ├── CHANGELOG.md                        # 版本更新日志
 ├── LICENSE                             # 开源许可证
@@ -1016,13 +1016,13 @@ P0（错误恢复：重试机制、断点续传、优雅降级）已在 v1.1.0 �
 ## 免责声明与法律提示
 
 **非腾讯官方产品：**
-- BrowserSkill Pro **并非**由腾讯或其关联公司开发、背书或维护
+- ZenX Bridge Skill **并非**由腾讯或其关联公司开发、背书或维护
 - 这是一个基于开源 BrowserSkill 框架构建的社区驱动项目
 - 使用本软件的风险由用户自行承担
 
 **商标与品牌：**
 - "BrowserSkill" 可能是腾讯的商标或注册商标
-- "BrowserSkill Pro" 及相关品牌仅用于识别目的
+- "ZenX Bridge Skill" 及相关品牌仅用于识别目的
 - 不暗示与腾讯有任何官方关联或背书
 
 **安全性与维护：**
@@ -1053,7 +1053,7 @@ P0（错误恢复：重试机制、断点续传、优雅降级）已在 v1.1.0 �
 
 ### 本版本（Pro 功能）
 
-**BrowserSkill Pro** 在 `browserskill-new` 基础上新增：
+**ZenX Bridge Skill** 在 `browserskill-new` 基础上新增：
 
 - ✅ 完整的跨平台安装系统（Windows PowerShell / Linux Bash / Docker）
 - ✅ 支持 4+ 种 AI Agent 环境（CodeBuddy/Claude Code/WorkBuddy/Codex）
@@ -1069,12 +1069,12 @@ P0（错误恢复：重试机制、断点续传、优雅降级）已在 v1.1.0 �
 
 | 平台 | Agent 环境 | 安装路径 |
 |------|-----------|---------|
-| CodeBuddy | 主要支持平台 | `~/.codebuddy/skills/browserskill-pro` |
-| Claude Code | Skills 模式 | `~/.claude/skills/browserskill-pro` |
-| Claude Code | Commands 模式 | `~/.claude/commands/browserskill-pro` |
-| WorkBuddy | 企业级 Agent | `~/.workbuddy/skills/browserskill-pro` |
-| Codex | OpenAI 助手 | `~/.codex/skills/browserskill-pro` |
-| Docker | 容器化部署 | `browserskill-pro:latest` 镜像 |
+| CodeBuddy | 主要支持平台 | `~/.codebuddy/skills/zenx-bridge-skill` |
+| Claude Code | Skills 模式 | `~/.claude/skills/zenx-bridge-skill` |
+| Claude Code | Commands 模式 | `~/.claude/commands/zenx-bridge-skill` |
+| WorkBuddy | 企业级 Agent | `~/.workbuddy/skills/zenx-bridge-skill` |
+| Codex | OpenAI 助手 | `~/.codex/skills/zenx-bridge-skill` |
+| Docker | 容器化部署 | `zenx-bridge-skill:latest` 镜像 |
 
 ## 致谢
 
@@ -1104,7 +1104,7 @@ P0（错误恢复：重试机制、断点续传、优雅降级）已在 v1.1.0 �
 
 <div align="center">
 
-**Made with ❤️ by the BrowserSkill Pro Team**
+**Made with ❤️ by the ZenX Bridge Skill Team**
 
 [报告问题](https://github.com/916938/zenx-bridge-skill/issues) · [提出建议](https://github.com/916938/zenx-bridge-skill/discussions) · [更新日志](CHANGELOG.md)
 

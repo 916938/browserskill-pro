@@ -67,11 +67,11 @@ Pass `--auto` to attempt automatic recovery for recoverable issues (currently ta
 
 ## Development environment setup
 
-This section covers the complete development environment for working with BrowserSkill Pro — both for using the helpers and for contributing to the skill package.
+This section covers the complete development environment for working with ZenX Bridge Skill — both for using the helpers and for contributing to the skill package.
 
 ### Runtime dependencies
 
-These are required to run BrowserSkill Pro in agent workflows:
+These are required to run ZenX Bridge Skill in agent workflows:
 
 | Component | Minimum Version | Recommended | Notes |
 |-----------|-----------------|-------------|-------|
@@ -141,7 +141,7 @@ bsk status                 # extension status should be "connected"
 
 ### Development tools (for contributors only)
 
-If you plan to modify BrowserSkill Pro helper scripts or documentation:
+If you plan to modify ZenX Bridge Skill helper scripts or documentation:
 
 | Tool | Version | Purpose |
 |------|---------|---------|
@@ -326,7 +326,7 @@ Install BrowserSkill from [Chrome Web Store](https://chromewebstore.google.com/d
 
 For custom builds or protocol changes, see [Building the extension from source](#building-the-extension-from-source) above.
 
-### 3. Install the BrowserSkill Pro skill package
+### 3. Install the ZenX Bridge Skill skill package
 
 The base `bsk` CLI ships with a built-in skill (`bsk install-skill`). For enhanced helper scripts and layered documentation, install this Pro package:
 
@@ -346,7 +346,7 @@ The bundled skill can still be installed interactively for comparison purposes (
 
 **Option B: Manual installation**
 
-Copy this repository's `skill/` directory into your agent's skills directory as `browserskill-pro/`. See the main README for agent-specific paths.
+Copy this repository's `skill/` directory into your agent's skills directory as `zenx-bridge-skill/`. See the main README for agent-specific paths.
 
 > A skill directory copied by hand has no provenance marker, so `bsk doctor` reports it as a paused skill (`WARN`, reasons include `Untracked` and `LocalChanges`) and leaves the files alone rather than overwriting local edits. Install with `--source` to record that intent up front.
 

@@ -1,9 +1,9 @@
 ---
-name: browserskill-pro
+name: zenx-bridge-skill
 description: "Control the user's real logged-in browser through the local BrowserSkill daemon. Use when the task requires a real browser session, login state, existing tabs, screenshots, form filling, confirmed file uploads, PDF saving, or network diagnosis. Prefer a dedicated API, MCP tool, or site-specific skill when one is explicitly available and sufficient. Do not use for pure web search, factual lookup, or tasks that do not need browser state."
 ---
 
-# BrowserSkill Pro
+# ZenX Bridge Skill
 
 Control the user's live browser through the bsk CLI.
 
@@ -353,7 +353,7 @@ If you're currently running in legacy mode and want passthrough benefits:
 
 ### Migration notes for agent developers
 
-If you maintain agent code that calls BrowserSkill Pro helpers:
+If you maintain agent code that calls ZenX Bridge Skill helpers:
 
 - **No immediate action required**: Auto-detection means all existing code works on both modes
 - **Recommended**: Test complex argument payloads after upgrading to ensure passthrough compatibility
