@@ -5,7 +5,7 @@
     从 GitHub 仓库自动下载并安装 BrowserSkill Pro skill 到 CodeBuddy 或 WorkBuddy 的 skills 目录。
     支持自定义分支、强制覆盖、多环境检测。
 .PARAMETER RepoUrl
-    GitHub 仓库地址（默认: https://github.com/916938/browserskill-pro.git）
+    GitHub 仓库地址（默认: https://github.com/916938/zenx-bridge-skill.git）
 .PARAMETER Branch
     要安装的分支或标签（默认: main）
 .PARAMETER TargetPath
@@ -30,7 +30,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $false)]
-    [string]$RepoUrl = "https://github.com/916938/browserskill-pro.git",
+    [string]$RepoUrl = "https://github.com/916938/zenx-bridge-skill.git",
 
     [Parameter(Mandatory = $false)]
     [string]$Branch = "main",
@@ -306,7 +306,7 @@ catch {
     Write-ColorOutput "   3. 验证仓库地址和分支名称是否正确" Gray
     Write-ColorOutput "   4. 检查目标目录是否有写入权限" Gray
     Write-ColorOutput "   5. 如果问题持续，请查看 GitHub Issues:" Gray
-    Write-ColorOutput "      https://github.com/916938/browserskill-pro/issues" Cyan
+    Write-ColorOutput "      https://github.com/916938/zenx-bridge-skill/issues" Cyan
     Write-ColorOutput ""
     
     exit 1

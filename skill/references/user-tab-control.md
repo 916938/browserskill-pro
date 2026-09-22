@@ -1,6 +1,6 @@
 # User-scope tab control (fork build)
 
-These commands operate on the user's own browser windows — not on the Agent Window and without creating a session. They come from the `916938/browserskill-new` fork (tab commands merged 2026-09-14, `browsers close` merged 2026-09-17) and are **not** in Tencent/BrowserSkill releases. Verify with `bsk tab <subcommand> --help` / `bsk browsers close --help` before using them.
+These commands operate on the user's own browser windows — not on the Agent Window and without creating a session. They come from the `916938/zenx-bridge` fork (tab commands merged 2026-09-14, `browsers close` merged 2026-09-17) and are **not** in Tencent/BrowserSkill releases. Verify with `bsk tab <subcommand> --help` / `bsk browsers close --help` before using them.
 
 ```bash
 bsk browsers                                          # take instance_id from here

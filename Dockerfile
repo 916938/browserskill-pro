@@ -18,7 +18,7 @@ FROM python:3.12-slim AS base
 LABEL maintainer="BrowserSkill Pro Team"
 LABEL description="BrowserSkill Pro - AI Agent 浏览器控制 Skill"
 LABEL version="1.1.0"
-LABEL repository="https://github.com/916938/browserskill-pro"
+LABEL repository="https://github.com/916938/zenx-bridge-skill"
 
 # 设置环境变量
 ENV PYTHONDONTWRITEBYTECODE=1 \

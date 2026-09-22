@@ -3,7 +3,7 @@
 本文档客观对比两个自有项目与上游 [`Tencent/BrowserSkill`](https://github.com/Tencent/BrowserSkill) 的差异，供技术选型与对外说明引用。
 
 - **对比基线**：上游 `Tencent/BrowserSkill` `main`（2026-09-18，版本 **0.3.0**，daemon 协议 **1.3**）
-- **自有项目**：`916938/browserskill-new` **0.4.0**；`916938/browserskill-pro` **v1.1.0**
+- **自有项目**：`916938/zenx-bridge` **0.4.0**；`916938/zenx-bridge-skill` **v1.1.0**
 - **成文日期**：2026-09-21
 
 ### 口径与可信度说明
@@ -22,8 +22,8 @@
 
 | 项目 | 名称与定位 | 与上游的关系 |
 |---|---|---|
-| `916938/browserskill-new` | **bsk CLI / daemon / 浏览器扩展的源码发行版**。交付可执行的 `bsk` 二进制与 Chromium 扩展，是**能力层**。 | 上游的下游发行版（soft fork）。保留上游 remote 并持续同步修复，但拥有独立版本线与支持范围。 |
-| `916938/browserskill-pro` | **Agent Skill 包**。不含 CLI 源码，面向 AI Agent 提供指令、参考文档、脚本与示例，是**使用层**。 | 上游无对应产物。它把 `bsk` 的能力编排成 Agent 可直接遵循的工作流。 |
+| `916938/zenx-bridge` | **bsk CLI / daemon / 浏览器扩展的源码发行版**。交付可执行的 `bsk` 二进制与 Chromium 扩展，是**能力层**。 | 上游的下游发行版（soft fork）。保留上游 remote 并持续同步修复，但拥有独立版本线与支持范围。 |
+| `916938/zenx-bridge-skill` | **Agent Skill 包**。不含 CLI 源码，面向 AI Agent 提供指令、参考文档、脚本与示例，是**使用层**。 | 上游无对应产物。它把 `bsk` 的能力编排成 Agent 可直接遵循的工作流。 |
 
 ### 二者如何互补
 
@@ -129,7 +129,7 @@ browserskill-pro  ── 使用层：SKILL.md + 命令注册表 + 脚本 + 示�
 | 协议握手 | **持平且刻意保持**：`bsk-protocol/src/system.rs` 握手逻辑与上游零差异。这是低成本同步的前提，也是既定策略。 |
 | CLI ↔ 扩展版本 | 双方都要求匹配（不匹配退出码 5）；我方 CLI 与扩展同为 0.4.0 |
 | 版本号可比性 | **我方版本线独立**：号码始终大于最后同步的上游版本（上游 0.3.0 → 我方 0.4.0）。好处是"看版本号就知道跑的是哪个发行版"；代价是与上游文档、教程的版本号不一致，引用时需换算。 |
-| 上游脚本/教程 | 上游安装脚本与文档指向 `Tencent/BrowserSkill`；我方 README / `AGENT_INSTALL.md` / 安装 URL 已全部改为 `916938/browserskill-new`。**上游教程不能直接照抄**。 |
+| 上游脚本/教程 | 上游安装脚本与文档指向 `Tencent/BrowserSkill`；我方 README / `AGENT_INSTALL.md` / 安装 URL 已全部改为 `916938/zenx-bridge`。**上游教程不能直接照抄**。 |
 | pro 与 bsk 版本 | pro 向后兼容 bsk 0.1.0+，但 fork 专属能力需要 fork 构建；能力按三层标注，缺失时自动降级 |
 
 ### 2.7 社区生态

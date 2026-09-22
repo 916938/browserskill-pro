@@ -9,7 +9,7 @@
 [![Agent Skill](https://img.shields.io/badge/Agent-Skill-black.svg)](skill/SKILL.md)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg)](#quick-start)
 [![Version](https://img.shields.io/badge/Version-v1.1.0-green.svg)](CHANGELOG.md)
-[![bsk](https://img.shields.io/badge/bsk-0.4.0%2B%20fork-orange.svg)](https://github.com/916938/browserskill-new)
+[![bsk](https://img.shields.io/badge/bsk-0.4.0%2B%20fork-orange.svg)](https://github.com/916938/zenx-bridge)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 </div>
@@ -45,7 +45,7 @@ As long as an Agent can read Agent Skill instructions and execute local shell co
 
 **Aligned bsk version**: CLI and extension **0.4.0** (daemon protocol **1.3**). Since 0.2.2 the CLI, extension and DSH plugin share one semver — upgrade all three together, because a mismatch fails with exit code 5.
 
-> ⚠️ **This skill requires the fork build** — [`916938/browserskill-new`](https://github.com/916938/browserskill-new), not upstream
+> ⚠️ **This skill requires the fork build** — [`916938/zenx-bridge`](https://github.com/916938/zenx-bridge), not upstream
 > [`Tencent/BrowserSkill`](https://github.com/Tencent/BrowserSkill). Upstream releases do **not** work: several commands this
 > skill documents exist only in the fork (`browsers close`, `--browser-id` tab management, `tab observe`, `invoke`,
 > `templates`, `completion`). The fork keeps its own version line, always numbered above the upstream release it last synced
@@ -60,9 +60,9 @@ As long as an Agent can read Agent Skill instructions and execute local shell co
 ```
 Tencent/BrowserSkill (Official)
         │
-        ├──► 916938/browserskill-new (Community Fork & Enhanced Version)
+        ├──► 916938/zenx-bridge (Community Fork & Enhanced Version)
         │           │
-        │           └──► 916938/browserskill-pro (This Repository - Pro Edition)
+        │           └──► 916938/zenx-bridge-skill (This Repository - Pro Edition)
         │
         └──► Other community forks and derivatives
 ```
@@ -72,8 +72,8 @@ Tencent/BrowserSkill (Official)
 | Repository | Role | Maintainer | License |
 |------------|------|-----------|---------|
 | [Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill) | **Original/Upstream** | Tencent (Official) | MIT |
-| [916938/browserskill-new](https://github.com/916938/browserskill-new) | **Enhanced Base** | Community (916938) | MIT |
-| **916938/browserskill-pro** (this repo) | **Pro Edition** | Community (916938) | MIT |
+| [916938/zenx-bridge](https://github.com/916938/zenx-bridge) | **Enhanced Base** | Community (916938) | MIT |
+| **916938/zenx-bridge-skill** (this repo) | **Pro Edition** | Community (916938) | MIT |
 
 **Key Distinctions from Official Version:**
 - This is an **unofficial, community-maintained enhancement** of the original BrowserSkill
@@ -89,7 +89,7 @@ Tencent/BrowserSkill (Official)
 - ❌ Not endorsed, sponsored, or officially associated with Tencent
 - ⚠️ Users should review upstream [Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill) for official releases and security updates
 
-For the latest stable base version with Windows compatibility fixes and multi-browser support, see [browserskill-new](https://github.com/916938/browserskill-new).
+For the latest stable base version with Windows compatibility fixes and multi-browser support, see [browserskill-new](https://github.com/916938/zenx-bridge).
 
 ### Use Cases
 
@@ -153,7 +153,7 @@ Capabilities ship in **three tiers**, and both this README and `skill/SKILL.md` 
 |------|---------|----------|
 | **0.2.3** | Released baseline (2026-09-08) | `observe`, `snapshot`, borrow/return, `request-help`, `record`, `network` / `console`, `upload` / `download`, `emulate`, `templates` |
 | **0.2.4+** | Merged after the 0.2.3 tag; needs a build newer than 2026-09-08 | `screenshot --full-page`, `wheel`, `scroll-to`, `focus` / `blur`, `session start --name` with operation audit |
-| **Fork build** | `916938/browserskill-new` only, absent from upstream releases | `tab list\|create\|select --browser-id`, `tab observe`, `browsers close`, `invoke`, `templates`, `completion`, `since last_action`, profile account id, smart labels |
+| **Fork build** | `916938/zenx-bridge` only, absent from upstream releases | `tab list\|create\|select --browser-id`, `tab observe`, `browsers close`, `invoke`, `templates`, `completion`, `since last_action`, profile account id, smart labels |
 
 > The fork's **0.4.0** build already contains the 0.2.3 baseline and the 0.2.4+ tier, so installing the fork gets you all
 > three tiers at once — except that upstream's remote/server mode, which the fork carries but does **not** support, is never
@@ -174,7 +174,7 @@ Capabilities ship in **three tiers**, and both this README and `skill/SKILL.md` 
 curl -fsSL https://raw.githubusercontent.com/Tencent/BrowserSkill/main/install.sh | sh
 
 # Or the fork (recommended): bsk invoke, user-tab commands and other Pro dependencies live there
-curl -fsSL https://raw.githubusercontent.com/916938/browserskill-new/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/916938/zenx-bridge/main/install.sh | sh
 ```
 
 **Windows (PowerShell):**
@@ -182,7 +182,7 @@ curl -fsSL https://raw.githubusercontent.com/916938/browserskill-new/main/instal
 irm https://raw.githubusercontent.com/Tencent/BrowserSkill/main/install.ps1 | iex
 
 # Fork build (recommended)
-irm https://raw.githubusercontent.com/916938/browserskill-new/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/916938/zenx-bridge/main/install.ps1 | iex
 ```
 
 **Or via Cargo:**
@@ -279,7 +279,7 @@ Use $browserskill-pro to take a screenshot of the current page and delete tempor
 
 ```powershell
 # 1. Clone repository
-git clone https://github.com/916938/browserskill-pro.git %TEMP%\bsk-install
+git clone https://github.com/916938/zenx-bridge-skill.git %TEMP%\bsk-install
 
 # 2. Copy to target path (choose based on your Agent environment)
 $target = "$env:USERPROFILE\.codebuddy\skills\browserskill-pro"     # CodeBuddy
@@ -300,10 +300,10 @@ Test-Path "$target\SKILL.md"
 
 ```powershell
 # Download and run directly
-irm https://raw.githubusercontent.com/916938/browserskill-pro/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/916938/zenx-bridge-skill/main/install.ps1 | iex
 
 # Or save then run (recommended for code review)
-irm https://raw.githubusercontent.com/916938/browserskill-pro/main/install.ps1 -OutFile install.ps1
+irm https://raw.githubusercontent.com/916938/zenx-bridge-skill/main/install.ps1 -OutFile install.ps1
 .\install.ps1 -Branch main
 
 # Force overwrite existing installation
@@ -318,7 +318,7 @@ irm https://raw.githubusercontent.com/916938/browserskill-pro/main/install.ps1 -
 
 #### Method 3: Manual ZIP Download
 
-1. Visit https://github.com/916938/browserskill-pro
+1. Visit https://github.com/916938/zenx-bridge-skill
 2. Click **Code** → **Download ZIP**
 3. Extract and copy `skill/` directory contents to target path
 
@@ -344,7 +344,7 @@ git --version && python3 --version && curl --version
 ```bash
 # 1. Clone repository
 TMPDIR=$(mktemp -d)
-git clone https://github.com/916938/browserskill-pro.git "$TMPDIR/bsk"
+git clone https://github.com/916938/zenx-bridge-skill.git "$TMPDIR/bsk"
 
 # 2. Choose target path (based on your Agent environment)
 TARGET="$HOME/.codebuddy/skills/browserskill-pro"           # CodeBuddy
@@ -366,10 +366,10 @@ test -f "$TARGET/SKILL.md" && echo "✅ Installation successful!"
 
 ```bash
 # Option A: Execute directly
-curl -fsSL https://raw.githubusercontent.com/916938/browserskill-pro/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/916938/zenx-bridge-skill/main/install.sh | bash
 
 # Option B: Download then execute (recommended)
-curl -fsSL https://raw.githubusercontent.com/916938/browserskill-pro/main/install.sh -o install.sh
+curl -fsSL https://raw.githubusercontent.com/916938/zenx-bridge-skill/main/install.sh -o install.sh
 chmod +x install.sh
 ./install.sh --branch main
 
@@ -414,7 +414,7 @@ docker compose version  # Docker Compose V2+
 
 ```bash
 # 1. Build image
-git clone https://github.com/916938/browserskill-pro.git
+git clone https://github.com/916938/zenx-bridge-skill.git
 cd browserskill-pro
 docker build -t browserskill-pro:latest .
 
@@ -567,8 +567,8 @@ services:
 docker buildx build --platform linux/amd64,linux/arm64 -t browserskill-pro:latest .
 
 # Push to registry
-docker tag browserskill-pro:latest ghcr.io/916938/browserskill-pro:v1.0.0
-docker push ghcr.io/916938/browserskill-pro:v1.0.0
+docker tag browserskill-pro:latest ghcr.io/916938/zenx-bridge-skill:v1.0.0
+docker push ghcr.io/916938/zenx-bridge-skill:v1.0.0
 
 # Export/import (offline environments)
 docker save -o browserskill-pro.tar browserskill-pro:latest
@@ -1045,7 +1045,7 @@ This project is open-sourced under the [MIT License](LICENSE).
 
 | Project | Description | URL |
 |---------|-------------|-----|
-| **browserskill-new** | Enhanced base version with Windows fixes, multi-browser support, CI/CD workflows | [github.com/916938/browserskill-new](https://github.com/916938/browserskill-new) |
+| **browserskill-new** | Enhanced base version with Windows fixes, multi-browser support, CI/CD workflows | [github.com/916938/zenx-bridge](https://github.com/916938/zenx-bridge) |
 
 > **Note:** `browserskill-new` serves as the direct base for this Pro edition. It includes:
 > - Windows platform compatibility improvements
@@ -1085,7 +1085,7 @@ We extend our sincere gratitude to the following projects and communities:
 
 ### Core Technology
 - **[Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill)** — The original daemon and browser extension that makes all of this possible. Thank you to the Tencent team for open-sourcing this incredible technology.
-- **[916938/browserskill-new](https://github.com/916938/browserskill-new)** — The enhanced base version with critical Windows compatibility fixes and multi-browser support. The foundation upon which this Pro edition is built.
+- **[916938/zenx-bridge](https://github.com/916938/zenx-bridge)** — The enhanced base version with critical Windows compatibility fixes and multi-browser support. The foundation upon which this Pro edition is built.
 
 ### AI Agent Platforms
 - **[CodeBuddy](https://cnb.cool/codebuddy/codebuddy-code)** — Our primary supported AI Agent platform. Excellent integration experience.
@@ -1109,6 +1109,6 @@ We extend our sincere gratitude to the following projects and communities:
 
 **Made with ❤️ by the BrowserSkill Pro Team**
 
-[Report Issues](https://github.com/916938/browserskill-pro/issues) · [Feature Requests](https://github.com/916938/browserskill-pro/discussions) · [Changelog](CHANGELOG.md)
+[Report Issues](https://github.com/916938/zenx-bridge-skill/issues) · [Feature Requests](https://github.com/916938/zenx-bridge-skill/discussions) · [Changelog](CHANGELOG.md)
 
 </div>

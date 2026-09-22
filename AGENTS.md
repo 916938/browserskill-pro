@@ -90,7 +90,7 @@ bsk session stop $SESSION_ID
 - **`doctor.py` is read-only** — it never sends browser actions or starts the daemon.
 - **Layered docs** — `SKILL.md` for agent execution, `protocol.md` for parameters, `operations.md` for recovery, capability files (`long-screenshot.md`, `wheel.md`, `scroll-to.md`, `operation-audit.md`, `sandboxed-agents.md`, `user-tab-control.md`) loaded only for that capability, `how-it-works.md` for humans only.
 - **Availability tiers** — features merged after the bsk 0.2.3 tag are documented as **0.2.4+**, and `--browser-id` user-tab commands as **fork build only**. Never document a new command as generally available; name its tier and tell agents to confirm with `bsk <cmd> --help`.
-- **Docs follow the upstream repo** — the CLI source lives in `../browserskill-new`; verify command flags against `crates/bsk-cli/src/cli/*.rs` and `crates/bsk-protocol/schema/` before writing them down.
+- **Docs follow the upstream repo** — the CLI source lives in `../zenx-bridge`; verify command flags against `crates/bsk-cli/src/cli/*.rs` and `crates/bsk-protocol/schema/` before writing them down.
 - **Deprecated overrides stay documented** — `--unattended`, `tab borrow --no-confirm` and `BSK_REQUEST_HELP=off` still parse but do nothing; keep them listed as deprecated with their replacement rather than deleting them.
 
 ## Style conventions

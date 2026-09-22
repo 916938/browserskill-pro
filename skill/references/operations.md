@@ -242,7 +242,7 @@ This runs a local dev server that automatically rebuilds and reloads the extensi
 >
 > Newer capabilities are not in released binaries. Build them from source when you need them, and expect `bsk <cmd> --help` — not the version number — to decide availability:
 > - Post-0.2.3 merges: `screenshot --full-page`, `wheel`, `scroll-to`, `focus` / `blur`, `session start --name`, automation settings replacing `--unattended`.
-> - Fork-only (`916938/browserskill-new`): `tab list|create|select --browser-id`, `tab observe`. See [user-tab-control.md](user-tab-control.md).
+> - Fork-only (`916938/zenx-bridge`): `tab list|create|select --browser-id`, `tab observe`. See [user-tab-control.md](user-tab-control.md).
 >
 > **Protocol compatibility**:
 > - If you update one side (CLI or extension), you must rebuild/reinstall the other as well

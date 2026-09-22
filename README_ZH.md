@@ -9,7 +9,7 @@
 [![Agent Skill](https://img.shields.io/badge/Agent-Skill-black.svg)](skill/SKILL.md)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue.svg)](#快速开始)
 [![Version](https://img.shields.io/badge/Version-v1.1.0-green.svg)](CHANGELOG.md)
-[![bsk](https://img.shields.io/badge/bsk-0.4.0%2B%20fork-orange.svg)](https://github.com/916938/browserskill-new)
+[![bsk](https://img.shields.io/badge/bsk-0.4.0%2B%20fork-orange.svg)](https://github.com/916938/zenx-bridge)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 </div>
@@ -45,7 +45,7 @@ BrowserSkill Pro 是一个独立的 Agent Skill，通过本机 **BrowserSkill da
 
 **当前对齐的 bsk 版本**：CLI 与浏览器扩展 **0.4.0**（daemon 协议 **1.3**）。自 0.2.2 起 CLI / 扩展 / DSH 插件共用同一 semver，升级时三者需同步，版本不一致会直接触发退出码 5。
 
-> ⚠️ **本 skill 依赖 fork 构建** —— [`916938/browserskill-new`](https://github.com/916938/browserskill-new)，**不是**上游
+> ⚠️ **本 skill 依赖 fork 构建** —— [`916938/zenx-bridge`](https://github.com/916938/zenx-bridge)，**不是**上游
 > [`Tencent/BrowserSkill`](https://github.com/Tencent/BrowserSkill)。上游发布版**跑不起来**：本 skill 记录的若干命令只存在于
 > fork（`browsers close`、`--browser-id` 系列 tab 管理、`tab observe`、`invoke`、`templates`、`completion`）。
 > fork 使用独立版本线，号码始终高于最后一次同步的上游版本（上游 0.3.0 → fork 0.4.0），单看版本号即可分辨是哪个发行版。
@@ -59,9 +59,9 @@ BrowserSkill Pro 是一个独立的 Agent Skill，通过本机 **BrowserSkill da
 ```
 Tencent/BrowserSkill (官方版本)
         │
-        ├──► 916938/browserskill-new (社区分支与增强版)
+        ├──► 916938/zenx-bridge (社区分支与增强版)
         │           │
-        │           └──► 916938/browserskill-pro (本仓库 - Pro 专业版)
+        │           └──► 916938/zenx-bridge-skill (本仓库 - Pro 专业版)
         │
         └──► 其他社区分支和衍生版本
 ```
@@ -71,8 +71,8 @@ Tencent/BrowserSkill (官方版本)
 | 仓库 | 角色 | 维护者 | 许可证 |
 |------|------|--------|--------|
 | [Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill) | **原始/上游版本** | 腾讯（官方） | MIT |
-| [916938/browserskill-new](https://github.com/916938/browserskill-new) | **增强基础版** | 社区（916938） | MIT |
-| **916938/browserskill-pro**（本仓库） | **Pro 专业版** | 社区（916938） | MIT |
+| [916938/zenx-bridge](https://github.com/916938/zenx-bridge) | **增强基础版** | 社区（916938） | MIT |
+| **916938/zenx-bridge-skill**（本仓库） | **Pro 专业版** | 社区（916938） | MIT |
 
 **与官方版本的主要区别：**
 - 本项目是 BrowserSkill 的**非官方、社区维护的增强版本**
@@ -88,7 +88,7 @@ Tencent/BrowserSkill (官方版本)
 - ❌ 未获得腾讯的背书、赞助或官方关联
 - ⚠️ 用户应查看上游 [Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill) 获取官方发布和安全更新
 
-如需获取包含 Windows 兼容性修复和多浏览器支持的最新稳定基础版本，请参见 [browserskill-new](https://github.com/916938/browserskill-new)。
+如需获取包含 Windows 兼容性修复和多浏览器支持的最新稳定基础版本，请参见 [browserskill-new](https://github.com/916938/zenx-bridge)。
 
 ### 适用场景
 
@@ -152,7 +152,7 @@ Local AI Agent (CodeBuddy / Claude Code / WorkBuddy / Codex)
 |------|------|---------|
 | **0.2.3** | 已发布基线（2026-09-08） | `observe`、`snapshot`、borrow/return、`request-help`、`record`、`network` / `console`、`upload` / `download`、`emulate`、`templates` |
 | **0.2.4+** | 0.2.3 之后合入，需 2026-09-08 之后的构建 | `screenshot --full-page`、`wheel`、`scroll-to`、`focus` / `blur`、`session start --name` 与本地操作审计 |
-| **fork 构建** | 仅 `916938/browserskill-new`，上游发布版没有 | `tab list\|create\|select --browser-id`、`tab observe`、`browsers close`、`invoke`、`templates`、`completion`、`--since last_action`、profile account id、smart labels |
+| **fork 构建** | 仅 `916938/zenx-bridge`，上游发布版没有 | `tab list\|create\|select --browser-id`、`tab observe`、`browsers close`、`invoke`、`templates`、`completion`、`--since last_action`、profile account id、smart labels |
 
 > fork 的 **0.4.0** 构建已同时包含 0.2.3 基线与 0.2.4+ 层级，装 fork 就一次拿到三层 —— 唯一例外是上游的 remote/server 模式：
 > fork 虽携带该代码但**不支持**，在这里永远不算能力。若在更旧的构建上用到 0.2.4+ / fork 层级的能力，先跑 `bsk <命令> --help`
@@ -172,7 +172,7 @@ Local AI Agent (CodeBuddy / Claude Code / WorkBuddy / Codex)
 curl -fsSL https://raw.githubusercontent.com/Tencent/BrowserSkill/main/install.sh | sh
 
 # 或 fork 版（推荐）：Pro 依赖的 bsk invoke、用户标签页命令等增强都在 fork 里
-curl -fsSL https://raw.githubusercontent.com/916938/browserskill-new/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/916938/zenx-bridge/main/install.sh | sh
 ```
 
 **Windows（PowerShell）：**
@@ -180,7 +180,7 @@ curl -fsSL https://raw.githubusercontent.com/916938/browserskill-new/main/instal
 irm https://raw.githubusercontent.com/Tencent/BrowserSkill/main/install.ps1 | iex
 
 # fork 版（推荐）
-irm https://raw.githubusercontent.com/916938/browserskill-new/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/916938/zenx-bridge/main/install.ps1 | iex
 ```
 
 **或通过 Cargo：**
@@ -277,7 +277,7 @@ python3 <your-path>/browserskill-pro/scripts/doctor.py --wait-connected 20
 
 ```powershell
 # 1. 克隆仓库
-git clone https://github.com/916938/browserskill-pro.git %TEMP%\bsk-install
+git clone https://github.com/916938/zenx-bridge-skill.git %TEMP%\bsk-install
 
 # 2. 复制到目标路径（根据你的 Agent 环境选择）
 $target = "$env:USERPROFILE\.codebuddy\skills\browserskill-pro"     # CodeBuddy
@@ -298,10 +298,10 @@ Test-Path "$target\SKILL.md"
 
 ```powershell
 # 直接下载并执行
-irm https://raw.githubusercontent.com/916938/browserskill-pro/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/916938/zenx-bridge-skill/main/install.ps1 | iex
 
 # 或保存后运行（可审查代码）
-irm https://raw.githubusercontent.com/916938/browserskill-pro/main/install.ps1 -OutFile install.ps1
+irm https://raw.githubusercontent.com/916938/zenx-bridge-skill/main/install.ps1 -OutFile install.ps1
 .\install.ps1 -Branch main
 
 # 强制覆盖已有安装
@@ -316,7 +316,7 @@ irm https://raw.githubusercontent.com/916938/browserskill-pro/main/install.ps1 -
 
 #### 方法三：手动下载 ZIP
 
-1. 访问 https://github.com/916938/browserskill-pro
+1. 访问 https://github.com/916938/zenx-bridge-skill
 2. 点击 **Code** → **Download ZIP**
 3. 解压后复制 `skill/` 目录内容到目标路径
 
@@ -342,7 +342,7 @@ git --version && python3 --version && curl --version
 ```bash
 # 1. 克隆仓库
 TMPDIR=$(mktemp -d)
-git clone https://github.com/916938/browserskill-pro.git "$TMPDIR/bsk"
+git clone https://github.com/916938/zenx-bridge-skill.git "$TMPDIR/bsk"
 
 # 2. 选择目标路径（根据你的 Agent 环境）
 TARGET="$HOME/.codebuddy/skills/browserskill-pro"           # CodeBuddy
@@ -364,10 +364,10 @@ test -f "$TARGET/SKILL.md" && echo "✅ 安装成功！"
 
 ```bash
 # 方式 A：直接执行
-curl -fsSL https://raw.githubusercontent.com/916938/browserskill-pro/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/916938/zenx-bridge-skill/main/install.sh | bash
 
 # 方式 B：下载后执行（推荐）
-curl -fsSL https://raw.githubusercontent.com/916938/browserskill-pro/main/install.sh -o install.sh
+curl -fsSL https://raw.githubusercontent.com/916938/zenx-bridge-skill/main/install.sh -o install.sh
 chmod +x install.sh
 ./install.sh --branch main
 
@@ -412,7 +412,7 @@ docker compose version  # Docker Compose V2+
 
 ```bash
 # 1. 构建镜像
-git clone https://github.com/916938/browserskill-pro.git
+git clone https://github.com/916938/zenx-bridge-skill.git
 cd browserskill-pro
 docker build -t browserskill-pro:latest .
 
@@ -565,8 +565,8 @@ services:
 docker buildx build --platform linux/amd64,linux/arm64 -t browserskill-pro:latest .
 
 # 推送到仓库
-docker tag browserskill-pro:latest ghcr.io/916938/browserskill-pro:v1.0.0
-docker push ghcr.io/916938/browserskill-pro:v1.0.0
+docker tag browserskill-pro:latest ghcr.io/916938/zenx-bridge-skill:v1.0.0
+docker push ghcr.io/916938/zenx-bridge-skill:v1.0.0
 
 # 导出/导入（离线环境）
 docker save -o browserskill-pro.tar browserskill-pro:latest
@@ -1042,7 +1042,7 @@ P0（错误恢复：重试机制、断点续传、优雅降级）已在 v1.1.0 �
 
 | 项目 | 描述 | URL |
 |------|------|-----|
-| **browserskill-new** | 包含 Windows 修复、多浏览器支持、CI/CD 工作流的增强基础版 | [github.com/916938/browserskill-new](https://github.com/916938/browserskill-new) |
+| **browserskill-new** | 包含 Windows 修复、多浏览器支持、CI/CD 工作流的增强基础版 | [github.com/916938/zenx-bridge](https://github.com/916938/zenx-bridge) |
 
 > **说明：** `browserskill-new` 是本 Pro 版的直接基础。它包括：
 > - Windows 平台兼容性改进
@@ -1082,7 +1082,7 @@ P0（错误恢复：重试机制、断点续传、优雅降级）已在 v1.1.0 �
 
 ### 核心技术
 - **[Tencent/BrowserSkill](https://github.com/Tencent/BrowserSkill)** — 使这一切成为可能的原始 daemon 和浏览器扩展。感谢腾讯团队开源了这项令人难以置信的技术。
-- **[916938/browserskill-new](https://github.com/916938/browserskill-new)** — 包含关键 Windows 兼容性修复和多浏览器支持的增强基础版。本 Pro 版本构建的基础。
+- **[916938/zenx-bridge](https://github.com/916938/zenx-bridge)** — 包含关键 Windows 兼容性修复和多浏览器支持的增强基础版。本 Pro 版本构建的基础。
 
 ### AI Agent 平台
 - **[CodeBuddy](https://cnb.cool/codebuddy/codebuddy-code)** — 我们主要支持的 AI Agent 平台。出色的集成体验。
@@ -1106,6 +1106,6 @@ P0（错误恢复：重试机制、断点续传、优雅降级）已在 v1.1.0 �
 
 **Made with ❤️ by the BrowserSkill Pro Team**
 
-[报告问题](https://github.com/916938/browserskill-pro/issues) · [提出建议](https://github.com/916938/browserskill-pro/discussions) · [更新日志](CHANGELOG.md)
+[报告问题](https://github.com/916938/zenx-bridge-skill/issues) · [提出建议](https://github.com/916938/zenx-bridge-skill/discussions) · [更新日志](CHANGELOG.md)
 
 </div>

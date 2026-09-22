@@ -41,7 +41,7 @@ BOLD='\033[1m'
 # ============================================================
 # 全局变量
 # ============================================================
-REPO_URL="https://github.com/916938/browserskill-pro.git"
+REPO_URL="https://github.com/916938/zenx-bridge-skill.git"
 BRANCH="main"
 TARGET_PATH=""
 FORCE=false

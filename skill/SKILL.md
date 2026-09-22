@@ -9,7 +9,7 @@ Control the user's live browser through the bsk CLI.
 
 **Version compatibility**: This skill package works with **bsk CLI 0.1.0+**. The **`bsk invoke` passthrough command** (available in bsk 0.2.0+) enables the invoke helpers to forward raw JSON without host-side parsing. If `bsk invoke` is unavailable, helpers automatically fall back to direct typed-command mode.
 
-**Requires the fork build** — `916938/browserskill-new`, not upstream `Tencent/BrowserSkill`. Several commands below
+**Requires the fork build** — `916938/zenx-bridge`, not upstream `Tencent/BrowserSkill`. Several commands below
 (`browsers close`, `--browser-id` tab management, `tab observe`, `invoke`, `templates`, `completion`) exist only in the
 fork. The fork keeps its own version line, numbered above the upstream release it last synced (upstream 0.3.0 → fork 0.4.0).
 
@@ -24,8 +24,8 @@ Feature availability by CLI version:
 - `bsk observe` (VOM semantic view), `hover`, `console`, `emulate`, `window resize`, `templates`, `logs`, `update`, `completion`: 0.2.1+
 - `bsk upload` / `bsk download`, `observe --probe-hover`, fill validation errors: 0.2.2+
 - `bsk screenshot --full-page`, `bsk wheel`, `bsk scroll-to`, `bsk focus` / `bsk blur`, extension automation settings replacing CLI overrides, `session start --name` with operation audit: **0.2.4+** (merged after the 0.2.3 release; requires a build newer than 2026-09-08)
-- User-scope tab commands (`tab list|select|create --browser-id`, `tab observe`): **fork build only** (`916938/browserskill-new` @ 2026-09-14 or later)
-- `bsk browsers close` (quit a whole browser instance): **fork build only** (`916938/browserskill-new` @ 2026-09-17 or later)
+- User-scope tab commands (`tab list|select|create --browser-id`, `tab observe`): **fork build only** (`916938/zenx-bridge` @ 2026-09-14 or later)
+- `bsk browsers close` (quit a whole browser instance): **fork build only** (`916938/zenx-bridge` @ 2026-09-17 or later)
 - `--since last_action` cursor, profile account id reporting, instance smart labels: **fork build only** (2026-09-19 or later)
 
 A command in the 0.2.4+/fork tiers is absent from released binaries. Confirm with `bsk <command> --help` before relying on it, and continue with what the installed build supports when it is missing. The fork's remote/server mode is carried in the tree but unsupported — never treat it as an available capability.
